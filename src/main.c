@@ -1564,10 +1564,6 @@ FragmentShaderOutput runFragmentShader(TriangleTraversalOutput *in, Texture* tex
                 in->fragments[i].color.x = result.x * texel.x/ 255.0;
                 in->fragments[i].color.y = result.y * texel.y/ 255.0;
                 in->fragments[i].color.z = result.z * texel.z/ 255.0;
-                
-                if(debug && i < 20){
-                    printVec4(in->fragments[i].color);
-                }
                 free(in->fragments[i].data);
             }
             break;
@@ -2142,3 +2138,4 @@ MeshData loadOBJ(const char *filename) {
     free(faceIndices);
     return mesh;
 }
+
