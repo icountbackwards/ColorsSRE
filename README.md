@@ -5,7 +5,7 @@ ColorsSRE is a basic software rendering engine written in C using Win32 API.
 
 # How to Build
 
-```bash
+```
 git clone https://github.com/yourname/ColorsSRE.git
 cd ColorsSRE
 
@@ -14,6 +14,7 @@ mkdir build
 cd build
 cmake ..
 cmake --build . --config Release
+```
 
 Supported features in this version:
 - Rendering .obj mesh object files
