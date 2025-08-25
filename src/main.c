@@ -367,9 +367,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 
     Texture texture1 = createTexture("../assets/gold.png");
 
-    printf("tex width: %d\n", texture1.width);
-    printf("tex height: %d\n", texture1.height);
-
     suzanne_flat = loadOBJ("../assets/suzanne_smooth.obj");
     suzanne_flat_vbo = generateVertexBuffer(suzanne_flat.vertices, suzanne_flat.indices, vbo1layout, suzanne_flat.vertexCount, suzanne_flat.indexCount, vbo1layoutsize);
 
@@ -425,7 +422,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 
         if(backtofront){
             cameraFront = (Vec3){0.0, 0.0, -1.0};
-            cameraPos = (Vec3){0.0, 0.0, 3.0};
+            cameraPos = (Vec3){0.0, 0.0, 6.0};
             yaw = -90.0;
             pitch = 0.0;
             backtofront = false;
@@ -2138,4 +2135,5 @@ MeshData loadOBJ(const char *filename) {
     free(faceIndices);
     return mesh;
 }
+
 
