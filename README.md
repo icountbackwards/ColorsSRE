@@ -9,7 +9,6 @@ ColorsSRE is a basic software rendering engine written in C using Win32 API.
 git clone https://github.com/yourname/ColorsSRE.git
 cd ColorsSRE
 
-# Configure and build (example using CMake)
 mkdir build
 cd build
 cmake ..
