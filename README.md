@@ -7,8 +7,8 @@ ColorsSRE is a basic software rendering engine written in C using Win32 API.
 
 Go to project directory
 
-`cmake -S . -B build
-cd build`
+`cmake -S . -B build`
+`cd build`
 
 And then run ColorsSRE.exe
 
