@@ -2,6 +2,9 @@
 
 #include "./math_utils.h"
 
+#define PIPELINE_VARIATION_MESH 1
+#define PIPELINE_VARIATION_LIGHT_SOURCE 2
+
 typedef struct {
     float *data;
     int size;

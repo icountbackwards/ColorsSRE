@@ -11,6 +11,8 @@ add_executable(${PROJECT_NAME}
     src/math_utils.c
     src/pipeline.c
     src/vertex_shader.c
+    src/primitive_processing.c
+    src/rasterizer.c
 )
 
 # Include project headers

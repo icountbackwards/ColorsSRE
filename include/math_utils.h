@@ -42,6 +42,7 @@ typedef struct {
 } Mat4;
 
 float abs_(float n);
+Vec3 abs3(Vec3 v);
 Vec3 minus3(Vec3 front, Vec3 back);
 Vec3 plus3(Vec3 front, Vec3 back);
 Vec3 scalarMultiply3(float scalar, Vec3 vector);

@@ -332,3 +332,23 @@ Mat3 createMat3(
     return m;
 }
 
+Vec3 abs3(Vec3 v){
+    Vec3 out;
+    if(v.x < 0){
+        out.x = v.x * -1;
+    }else{
+        out.x = v.x;
+    }
+    if(v.y < 0){
+        out.y = v.y * -1;
+    }else{
+        out.y = v.y;
+    }
+    if(v.z < 0){
+        out.z = v.z * -1;
+    }else{
+        out.z = v.z;
+    }
+    return out;
+}
+

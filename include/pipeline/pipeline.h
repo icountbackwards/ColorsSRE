@@ -2,6 +2,6 @@
 
 #include "pipeline_structs.h"
 #include "vertex_shader.h"
+#include "primitive_processing.h"
+#include "rasterizer.h"
 
-int edgeCross1(Vertex a, Vertex b, Vec2 p);
-int edgeCross2(Vertex a, Vertex b, Vertex p);
