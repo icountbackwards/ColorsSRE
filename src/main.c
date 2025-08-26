@@ -21,9 +21,8 @@
 #include "data.c"
 
 #include "math_utils.h"
-
-#define PIPELINE_VARIATION_MESH 1
-#define PIPELINE_VARIATION_LIGHT_SOURCE 2
+#include "pipeline/pipeline.h"
+#include "instance.h"
 
 static boolean quit = FALSE;
 
@@ -32,94 +31,6 @@ struct {
     int height;
     uint32_t *pixels;
 }frame = { 0 };
-
-typedef struct {
-    float *data;
-    int dataSize;
-    int *layout;
-    int layoutSize;
-    int *indices;
-    int indicesSize;
-} VertexBuffer;
-
-
-typedef struct {
-    Vertex *vertices;
-    int *indices;
-    int *layout;
-    int vertexAmount;
-    int indicesSize;
-    int layoutSize;
-} VertexShaderOutput;
-
-typedef struct {
-    Vec2 position;
-    float zval;
-    Vec4 color;
-    float *data;
-    Vec2 texCoord;
-    Vec3 normal;
-    Vec3 fragPos;
-} Fragment;
-
-typedef struct {
-    Vertex v1;
-    Vertex v2;
-    Vertex v3;
-    Fragment *fragments;
-    int fragmentAmount;
-} Primitive;
-
-typedef struct {
-    Primitive *primitives;
-    int *layout;
-    int primitiveAmount;
-    int layoutSize;
-} PrimitiveAssemblyOutput;
-
-typedef struct {
-    Primitive *primitives;
-    int *layout;
-    int primitiveAmount;
-    int layoutSize;
-} PrimitiveOutput;
-
-typedef struct{
-    Primitive *primitives;
-    int size;
-} PrimitiveGroup;
-
-typedef struct {
-    Primitive *primitives;
-    int *layout;
-    int primitiveAmount;
-    int layoutSize;
-} ClippingOutput;
-
-typedef struct {
-    Vec2 Max;
-    Vec2 Min;
-} AABB;
-
-typedef struct {
-    Mat4 model;
-    Mat4 view;
-    Mat4 projection;
-    Vec3 objectColor;
-    Vec3 lightColor;
-    Vec3 lightPos;
-    Vec3 viewPos;
-} UniformBuffer;
-
-typedef struct {
-    Fragment *fragments;
-    int fragmentSize;
-} TriangleTraversalOutput;
-
-typedef struct {
-    Fragment* fragments;
-    int fragmentSize;
-} FragmentShaderOutput;
 
 typedef struct {
     Vec3* pixels;
@@ -209,13 +120,10 @@ VertexBuffer generateVertexBuffer(float* data, int* indices, int* layout, int da
 
 void draw(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, int pipelineVariation);
 
-int getVertexAmount(VertexBuffer *vbo);
-Vec2 getVertexData2(float **data, int index, int* layout, int loc);
-Vec3 getVertexData3(float **data, int index, int* layout, int loc);
-Vec4 getVertexData4(float **data, int index, int* layout, int loc);
+
+
 Vertex getIntersectingPoint(Vertex v1, Vertex v2, Vec3 clipPlane);
-void mapVertexShaderDataOutput3(Vertex *vertex, Vec3 output, int loc, int* layout);
-void mapVertexShaderDataOutput4(Vertex *vertex, Vec4 output, int loc, int* layout);
+
 bool isInside(Vertex v, Vec3 clipPlane);
 PrimitiveGroup groupPrimitives(PrimitiveGroup parent, PrimitiveGroup child);
 PrimitiveGroup groupVertices(Vertex *vertices, int amount);
@@ -234,7 +142,7 @@ Vec3 getTexturePixel(Texture* pTex, float tx, float ty);
 void writepixel(int x, int y, uint32_t col);
 void handleMouse(long x, long y);
 
-VertexShaderOutput runVertexShader(VertexBuffer *vbo, UniformBuffer *ubo, int pipelineVariation);
+
 PrimitiveAssemblyOutput runPrimitiveAssembly(VertexShaderOutput vertices);
 ClippingOutput runPrimitiveClipping(PrimitiveAssemblyOutput primitives);
 PrimitiveOutput runPerspectiveDivide(ClippingOutput primitives);
@@ -566,283 +474,8 @@ void draw(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, int 
     
 }
 
-int getVertexAmount(VertexBuffer *vbo){
-    return vbo->dataSize / vbo->layout[2];
-}
-
-Vec2 getVertexData2(float **data, int index, int* layout, int loc){
-    int stride = layout[loc * 4 + 2];
-    int offset = layout[loc * 4 + 3];
-    Vec2 vec = {(*data)[stride * index + offset], (*data)[stride * index + offset + 1]};
-    return vec;
-}
-
-Vec3 getVertexData3(float **data, int index, int* layout, int loc){
-    int stride = layout[loc * 4 + 2];
-    int offset = layout[loc * 4 + 3];
-    Vec3 vec = {(*data)[stride * index + offset], (*data)[stride * index + offset + 1], (*data)[stride * index + offset + 2]};
-    return vec;
-}
-Vec4 getVertexData4(float **data, int index, int* layout, int loc){
-    int stride = layout[loc * 4 + 2];
-    int offset = layout[loc * 4 + 3];
-    Vec4 vec = {(*data)[stride * index + offset], (*data)[stride * index + offset + 1], (*data)[stride * index + offset + 2], (*data)[stride * index + offset + 3]};
-    return vec;
-}
-
 void updateUniformBuffer(){
 
-}
-
-void mapVertexShaderDataOutput2(Vertex *vertex, Vec2 output, int loc, int* layout){
-    int offset = layout[loc * 4 + 3];
-    vertex->data[offset] = output.x;
-    vertex->data[offset + 1] = output.y;
-}
-
-void mapVertexShaderDataOutput3(Vertex *vertex, Vec3 output, int loc, int* layout){
-    int offset = layout[loc * 4 + 3];
-    vertex->data[offset] = output.x;
-    vertex->data[offset + 1] = output.y;
-    vertex->data[offset + 2] = output.z;
-}
-
-void mapVertexShaderDataOutput4(Vertex *vertex, Vec4 output, int loc, int* layout){
-    int offset = layout[loc * 4 + 3];
-    vertex->data[offset] = output.x;
-    vertex->data[offset + 1] = output.y;
-    vertex->data[offset + 2] = output.z;
-    vertex->data[offset + 3] = output.w;
-}
-
-Mat3 mat3_create(
-    float m00, float m01, float m02,
-    float m10, float m11, float m12,
-    float m20, float m21, float m22
-) {
-    Mat3 m;
-    m.r0.x = m00; m.r0.y = m01; m.r0.z = m02;
-    m.r1.x = m10; m.r1.y = m11; m.r1.z = m12;
-    m.r2.x = m20; m.r2.y = m21; m.r2.z = m22;
-    return m;
-}
-
-// Transpose of a 3x3
-Mat3 mat3_transpose(Mat3 m) {
-    return mat3_create(
-        m.r0.x, m.r1.x, m.r2.x,
-        m.r0.y, m.r1.y, m.r2.y,
-        m.r0.z, m.r1.z, m.r2.z
-    );
-}
-
-// Inverse of a 3x3
-Mat3 mat3_inverse(Mat3 m) {
-    float a00 = m.r0.x, a01 = m.r0.y, a02 = m.r0.z;
-    float a10 = m.r1.x, a11 = m.r1.y, a12 = m.r1.z;
-    float a20 = m.r2.x, a21 = m.r2.y, a22 = m.r2.z;
-
-    float det =
-        a00 * (a11 * a22 - a12 * a21) -
-        a01 * (a10 * a22 - a12 * a20) +
-        a02 * (a10 * a21 - a11 * a20);
-
-    if (fabs(det) < 1e-8f) {
-        // Matrix is not invertible, return identity as fallback
-        return mat3_create(1, 0, 0,
-                           0, 1, 0,
-                           0, 0, 1);
-    }
-
-    float invDet = 1.0f / det;
-
-    return mat3_create(
-        (a11 * a22 - a12 * a21) * invDet,
-        (a02 * a21 - a01 * a22) * invDet,
-        (a01 * a12 - a02 * a11) * invDet,
-
-        (a12 * a20 - a10 * a22) * invDet,
-        (a00 * a22 - a02 * a20) * invDet,
-        (a02 * a10 - a00 * a12) * invDet,
-
-        (a10 * a21 - a11 * a20) * invDet,
-        (a01 * a20 - a00 * a21) * invDet,
-        (a00 * a11 - a01 * a10) * invDet
-    );
-}
-
-// Multiply Mat3 * Vec3
-Vec3 mat3_mul_vec3(Mat3 m, Vec3 v) {
-    Vec3 out;
-    out.x = m.r0.x * v.x + m.r0.y * v.y + m.r0.z * v.z;
-    out.y = m.r1.x * v.x + m.r1.y * v.y + m.r1.z * v.z;
-    out.z = m.r2.x * v.x + m.r2.y * v.y + m.r2.z * v.z;
-    return out;
-}
-
-Mat3 mat3_from_mat4(Mat4 m) {
-    Mat3 out;
-    out.r0.x = m.r0.x; out.r0.y = m.r0.y; out.r0.z = m.r0.z;
-    out.r1.x = m.r1.x; out.r1.y = m.r1.y; out.r1.z = m.r1.z;
-    out.r2.x = m.r2.x; out.r2.y = m.r2.y; out.r2.z = m.r2.z;
-    return out;
-}
-
-Vec3 normal_transform(Mat3 model, Vec3 aNormal) {
-    Mat3 inv = mat3_inverse(model);
-    Mat3 invT = mat3_transpose(inv);
-    return mat3_mul_vec3(invT, aNormal);
-}
-
-VertexShaderOutput runVertexShader(VertexBuffer *vbo, UniformBuffer *ubo, int pipelineVariation){
-    int vertexAmount, outDataLayoutSize1, outDataLayoutSize2, outDataSize1, outDataSize2;
-    Vertex *vertices1;
-    Vertex *vertices2;
-    VertexShaderOutput out;
-    switch(pipelineVariation){
-        case PIPELINE_VARIATION_MESH:
-            //GET INDEX OF EACH VERTEX ATTRIBUTE LOCATION (FIRST ELEMENT)
-            vertexAmount = getVertexAmount(vbo);
-            //printf("Vertex Shader Query: vertexAmount = %d\n\n", vertexAmount);
-            int outDataLayout1[20] = {0, 4, 15, 0, 
-                                        1, 3, 15, 4, 
-                                        2, 2, 15, 7, 
-                                        3, 3, 15, 9, 
-                                        4, 3, 15, 12}; //VERTEX AMOUNT, LOCATION, SIZE, STRIDE, OFFSET
-            outDataLayoutSize1 = 5;
-            outDataSize1 = 0;
-            for(int i = 0; i < outDataLayoutSize1; i++){
-                outDataSize1 += outDataLayout1[1 + i * 4];
-            }
-            vertices1 = malloc(sizeof(Vertex) * vertexAmount);
-            for(int v = 0; v < vertexAmount; v++){
-                //INPUT
-                Vec3 loc0in = getVertexData3(&vbo->data, v, vbo->layout, 0); // POS
-                Vec3 loc1in = getVertexData3(&vbo->data, v, vbo->layout, 1);
-                Vec2 loc2in = getVertexData2(&vbo->data, v, vbo->layout, 2);
-                Vec3 loc3in = getVertexData3(&vbo->data, v, vbo->layout, 3);
-
-                //OUTPUT
-                Vec4 loc0out; // POS
-                Vec3 loc1out; // COL
-                Vec2 loc2out; // TEXCOORD
-                Vec3 loc3out = normal_transform(mat3_from_mat4(ubo->model), loc3in);
-                Vec3 loc4out; //FRAGPOS
-
-                //CODE
-                loc0out.x = loc0in.x;
-                loc0out.y = loc0in.y;
-                loc0out.z = loc0in.z;
-                loc0out.w = 1.0;
-
-                //double angle = fmod(getTime(), TWO_PI);
-                //if (angle < 0)
-                //    angle += TWO_PI_SHORT;
-                //loc0out = rotate(loc0out, 0, angle);
-
-                //Vec3 factor = {getTime()* 0.1, 0.0, 0.0};
-                //loc0out = translate(loc0out, factor);
-                
-
-                loc0out = mat4vec4multiply(ubo->model, loc0out);
-
-                loc4out.x = loc0out.x;
-                loc4out.y = loc0out.y;
-                loc4out.z = loc0out.z;
-
-                loc0out = mat4vec4multiply(ubo->view, loc0out);
-                
-                loc0out = mat4vec4multiply(ubo->projection, loc0out);
-
-                loc1out.x = loc1in.x;
-                loc1out.y = loc1in.y;
-                loc1out.z = loc1in.z;
-
-                loc2out.x = loc2in.x;
-                loc2out.y = loc2in.y;
-
-                //MAP OUTPUT
-                vertices1[v].data = malloc(sizeof(float) * outDataSize1);
-                vertices1[v].size = outDataSize1;
-                mapVertexShaderDataOutput4(&vertices1[v], loc0out, 0, outDataLayout1);
-                mapVertexShaderDataOutput3(&vertices1[v], loc1out, 1, outDataLayout1);
-                mapVertexShaderDataOutput2(&vertices1[v], loc2out, 2, outDataLayout1);
-                mapVertexShaderDataOutput3(&vertices1[v], loc3out, 3, outDataLayout1);
-                mapVertexShaderDataOutput3(&vertices1[v], loc4out, 4, outDataLayout1);
-            }
-            out.indices = vbo->indices;
-            out.layout = malloc(sizeof(int) * outDataLayoutSize1 * 4);
-            for(int i = 0; i < outDataLayoutSize1 * 4; i++){
-                out.layout[i] = outDataLayout1[i];
-            }
-            out.vertices = vertices1;
-            out.vertices = malloc(sizeof(Vertex) * vertexAmount);
-            for(int i = 0; i < vertexAmount; i++){
-                out.vertices[i] = vertices1[i];
-            }
-            out.vertexAmount = vertexAmount;
-            out.indicesSize = vbo->indicesSize;
-            out.layoutSize = outDataLayoutSize1;
-
-            free(vertices1);
-
-            return out;
-        case PIPELINE_VARIATION_LIGHT_SOURCE:
-            //GET INDEX OF EACH VERTEX ATTRIBUTE LOCATION (FIRST ELEMENT)
-            vertexAmount = getVertexAmount(vbo);
-            //printf("Vertex Shader Query: vertexAmount = %d\n\n", vertexAmount);
-            int outDataLayout2[4] = {0, 4, 4, 0}; //VERTEX AMOUNT, LOCATION, SIZE, STRIDE, OFFSET
-            outDataLayoutSize2 = vbo->layoutSize;
-            outDataSize2 = 0;
-            for(int i = 0; i < outDataLayoutSize2; i++){
-                outDataSize2 += outDataLayout2[1 + i * 4];
-            }
-            vertices2 = malloc(sizeof(Vertex) * vertexAmount);
-            for(int v = 0; v < vertexAmount; v++){
-                //INPUT
-                Vec3 loc0in = getVertexData3(&vbo->data, v, vbo->layout, 0); // POS
-
-                //OUTPUT
-                Vec4 loc0out; // POS
-
-                //CODE
-                loc0out.x = loc0in.x;
-                loc0out.y = loc0in.y;
-                loc0out.z = loc0in.z;
-                loc0out.w = 1.0;
-
-
-                loc0out = mat4vec4multiply(ubo->model, loc0out);
-                loc0out = mat4vec4multiply(ubo->view, loc0out);
-                
-                loc0out = mat4vec4multiply(ubo->projection, loc0out);
-
-
-                //MAP OUTPUT
-                vertices2[v].data = malloc(sizeof(float) * outDataSize2);
-                vertices2[v].size = outDataSize2;
-                mapVertexShaderDataOutput4(&vertices2[v], loc0out, 0, outDataLayout2);
-            }
-
-            out.indices = vbo->indices;
-            out.layout = malloc(sizeof(int) * outDataLayoutSize2 * 4);
-            for(int i = 0; i < outDataLayoutSize2 * 4; i++){
-                out.layout[i] = outDataLayout2[i];
-            }
-            out.vertices = vertices2;
-            out.vertices = malloc(sizeof(Vertex) * vertexAmount);
-            for(int i = 0; i < vertexAmount; i++){
-                out.vertices[i] = vertices2[i];
-            }
-            out.vertexAmount = vertexAmount;
-            out.indicesSize = vbo->indicesSize;
-            out.layoutSize = outDataLayoutSize2;
-
-            free(vertices2);
-
-
-            return out;
-    }
 }
 
 PrimitiveAssemblyOutput runPrimitiveAssembly(VertexShaderOutput vsout){

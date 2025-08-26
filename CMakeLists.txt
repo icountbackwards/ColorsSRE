@@ -9,6 +9,8 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 add_executable(${PROJECT_NAME}
     src/main.c
     src/math_utils.c
+    src/pipeline.c
+    src/vertex_shader.c
 )
 
 # Include project headers

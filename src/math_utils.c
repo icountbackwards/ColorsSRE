@@ -48,13 +48,6 @@ Vec3 cross(Vec3 a, Vec3 b) {
     return result;
 }
 
-int edgeCross1(Vertex a, Vertex b, Vec2 p){
-    return ((b.data[0] - a.data[0])*(p.y-a.data[1]) - (b.data[1]-a.data[1])*(p.x-a.data[0]));
-}
-int edgeCross2(Vertex a, Vertex b, Vertex p){
-    return ((b.data[0] - a.data[0])*(p.data[1]-a.data[1]) - (b.data[1]-a.data[1])*(p.data[0]-a.data[0]));
-}
-
 Vec3 normalize(Vec3 v){
     float length = sqrt((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
     return (Vec3){v.x/length, v.y/length, v.z/length};
@@ -263,4 +256,79 @@ void printVec4(Vec4 v) {
     printf("Vec4(x: %f, y: %f, z: %f, w: %f)\n", v.x, v.y, v.z, v.w);
 }
 
+Vec3 normalTransform(Mat3 model, Vec3 aNormal) {
+    Mat3 inv = mat3Inverse(model);
+    Mat3 invT = mat3Transpose(inv);
+    return mat3vec3multiply(invT, aNormal);
+}
+
+Mat3 mat3Transpose(Mat3 m) {
+    return createMat3(
+        m.r0.x, m.r1.x, m.r2.x,
+        m.r0.y, m.r1.y, m.r2.y,
+        m.r0.z, m.r1.z, m.r2.z
+    );
+}
+
+Mat3 mat3Inverse(Mat3 m) {
+    float a00 = m.r0.x, a01 = m.r0.y, a02 = m.r0.z;
+    float a10 = m.r1.x, a11 = m.r1.y, a12 = m.r1.z;
+    float a20 = m.r2.x, a21 = m.r2.y, a22 = m.r2.z;
+
+    float det =
+        a00 * (a11 * a22 - a12 * a21) -
+        a01 * (a10 * a22 - a12 * a20) +
+        a02 * (a10 * a21 - a11 * a20);
+
+    if (fabs(det) < 1e-8f) {
+        // Matrix is not invertible, return identity as fallback
+        return createMat3(1, 0, 0,
+                           0, 1, 0,
+                           0, 0, 1);
+    }
+
+    float invDet = 1.0f / det;
+
+    return createMat3(
+        (a11 * a22 - a12 * a21) * invDet,
+        (a02 * a21 - a01 * a22) * invDet,
+        (a01 * a12 - a02 * a11) * invDet,
+
+        (a12 * a20 - a10 * a22) * invDet,
+        (a00 * a22 - a02 * a20) * invDet,
+        (a02 * a10 - a00 * a12) * invDet,
+
+        (a10 * a21 - a11 * a20) * invDet,
+        (a01 * a20 - a00 * a21) * invDet,
+        (a00 * a11 - a01 * a10) * invDet
+    );
+}
+
+Vec3 mat3vec3multiply(Mat3 m, Vec3 v) {
+    Vec3 out;
+    out.x = m.r0.x * v.x + m.r0.y * v.y + m.r0.z * v.z;
+    out.y = m.r1.x * v.x + m.r1.y * v.y + m.r1.z * v.z;
+    out.z = m.r2.x * v.x + m.r2.y * v.y + m.r2.z * v.z;
+    return out;
+}
+
+Mat3 getMat3(Mat4 m) {
+    Mat3 out;
+    out.r0.x = m.r0.x; out.r0.y = m.r0.y; out.r0.z = m.r0.z;
+    out.r1.x = m.r1.x; out.r1.y = m.r1.y; out.r1.z = m.r1.z;
+    out.r2.x = m.r2.x; out.r2.y = m.r2.y; out.r2.z = m.r2.z;
+    return out;
+}
+
+Mat3 createMat3(
+    float m00, float m01, float m02,
+    float m10, float m11, float m12,
+    float m20, float m21, float m22
+) {
+    Mat3 m;
+    m.r0.x = m00; m.r0.y = m01; m.r0.z = m02;
+    m.r1.x = m10; m.r1.y = m11; m.r1.z = m12;
+    m.r2.x = m20; m.r2.y = m21; m.r2.z = m22;
+    return m;
+}
 

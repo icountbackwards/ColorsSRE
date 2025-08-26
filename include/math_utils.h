@@ -3,8 +3,6 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "pipeline/pipeline_structs.h"
-
 #define TWO_PI 6.28318530718
 #define TWO_PI_SHORT 6.28
 #define PI 3.14159265358979323846f
@@ -51,8 +49,7 @@ Vec3 multiply3(Vec3 v1, Vec3 v2);
 
 float dot3(Vec3 v1, Vec3 v2);
 Vec3 cross(Vec3 a, Vec3 b);
-int edgeCross1(Vertex a, Vertex b, Vec2 p);
-int edgeCross2(Vertex a, Vertex b, Vertex p);
+
 Vec3 normalize(Vec3 v);
 
 float getMax(float n1, float n2);
@@ -60,6 +57,7 @@ float getMin(float n1, float n2);
 
 Mat4 mat4mat4Multiply(Mat4 left, Mat4 right);
 Vec4 mat4vec4multiply(Mat4 left, Vec4 right);
+Vec3 mat3vec3multiply(Mat3 m, Vec3 v);
 
 void rotate4(Mat4 *mat, float angle, int axis);
 void translate4(Mat4 *mat, Vec3 factor);
@@ -75,4 +73,14 @@ void printVec2(Vec2 v);
 void printVec3(Vec3 v);
 void printVec4(Vec4 v);
 
+Vec3 normalTransform(Mat3 model, Vec3 aNormal);
+Mat3 mat3Transpose(Mat3 m);
+Mat3 mat3Inverse(Mat3 m);
+Mat3 getMat3(Mat4 m);
+
+Mat3 createMat3(
+    float m00, float m01, float m02,
+    float m10, float m11, float m12,
+    float m20, float m21, float m22
+);
 
