@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #define TWO_PI 6.28318530718
 #define TWO_PI_SHORT 6.28
@@ -66,6 +67,7 @@ void scale4(Mat4 *mat, Vec3 scale);
 Vec4 scale(Vec4 vector, Vec3 factor);
 Vec4 translate(Vec4 vector, Vec3 factor);
 Vec4 rotate(Vec4 vector, int axis, double angle);
+Vec3 scale3(Vec3 v, float s);
 
 Mat4 perspective(float fovy, float aspect, float znear, float zfar);
 Mat4 lookAt(Vec3 cameraPos, Vec3 invDirection, Vec3 cameraUp);
@@ -84,4 +86,8 @@ Mat3 createMat3(
     float m10, float m11, float m12,
     float m20, float m21, float m22
 );
+
+Vec3 reflect(Vec3 I, Vec3 N);
+
+uint8_t clamp(int value, int min, int max);
 

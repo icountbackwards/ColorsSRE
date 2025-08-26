@@ -352,3 +352,20 @@ Vec3 abs3(Vec3 v){
     return out;
 }
 
+Vec3 reflect(Vec3 I, Vec3 N) {
+    // assumes N is already normalized
+    float dotNI = dot3(N, I);
+    Vec3 scaledNormal = scale3(N, 2.0f * dotNI);
+    return minus3(I, scaledNormal);
+}
+
+Vec3 scale3(Vec3 v, float s) {
+    Vec3 out = { v.x * s, v.y * s, v.z * s };
+    return out;
+}
+
+uint8_t clamp(int value, int min, int max) {
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+}

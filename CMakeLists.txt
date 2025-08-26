@@ -13,6 +13,9 @@ add_executable(${PROJECT_NAME}
     src/vertex_shader.c
     src/primitive_processing.c
     src/rasterizer.c
+    src/fragment_shader.c
+    src/objects.c
+    src/merger.c
 )
 
 # Include project headers

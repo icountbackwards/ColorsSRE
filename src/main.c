@@ -1,14 +1,8 @@
-//TODO:
-//1. TESTING REQUIRED -> FUNCTION groupVertices(). Note: No reordering of vertices established, possiblity for
-//                                                       wrong triangulation and incorrect primitive construction.
-
 #include <Windows.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <assert.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -18,11 +12,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "data.c"
 
 #include "math_utils.h"
 #include "pipeline/pipeline.h"
 #include "instance.h"
+#include "objects.h"
 
 static boolean quit = FALSE;
 
@@ -31,19 +28,6 @@ struct {
     int height;
     uint32_t *pixels;
 }frame = { 0 };
-
-typedef struct {
-    Vec3* pixels;
-    int width;
-    int height;
-} Texture;
-
-typedef struct {
-    float *vertices; // interleaved
-    int vertexCount; // number of floats
-    int *indices;
-    int indexCount;
-} MeshData;
 
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
@@ -121,18 +105,9 @@ void draw(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, int 
 void clearDepthBuffer();
 void clearFrameBuffer();
 double getTime();
-Vec3* load_png_as_vec3(const char* filename, int* out_width, int* out_height);
-static inline uint8_t clamp(int value, int min, int max);
-Vec3 getTexturePixel(Texture* pTex, float tx, float ty);
 
 void writepixel(int x, int y, uint32_t col);
 void handleMouse(long x, long y);
-
-FragmentShaderOutput runFragmentShader(TriangleTraversalOutput *in, Texture* texture, UniformBuffer *ubo, int pipelineVariation);
-void runMerger(FragmentShaderOutput *in, Texture* texture);
-MeshData loadOBJ(const char *filename);
-
-Texture createTexture(char* filename);
 
 void printVertex(Vertex v, int layoutSize);
 void printVertexShaderOutput(VertexShaderOutput out);
@@ -436,7 +411,7 @@ void draw(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, int 
     
     FragmentShaderOutput fragmentShaderOutput = runFragmentShader(&triangleTraversalOutput, pTextureResource, ubo, pipelineVariation);
 
-    runMerger(&fragmentShaderOutput, pTextureResource);
+    runMerger(&fragmentShaderOutput, pTextureResource, frame.width, frame.height, depthBuffer, frame.pixels);
 
     free(vertexShaderOutput.vertices);
     free(vertexShaderOutput.layout);    
@@ -458,79 +433,7 @@ void updateUniformBuffer(){
 
 }
 
-Vec3 vec3_scale(Vec3 v, float s) {
-    Vec3 out = { v.x * s, v.y * s, v.z * s };
-    return out;
-}
 
-Vec3 reflect(Vec3 I, Vec3 N) {
-    // assumes N is already normalized
-    float dotNI = dot3(N, I);
-    Vec3 scaledNormal = vec3_scale(N, 2.0f * dotNI);
-    return minus3(I, scaledNormal);
-}
-
-FragmentShaderOutput runFragmentShader(TriangleTraversalOutput *in, Texture* texture, UniformBuffer *ubo, int pipelineVariation) {
-    FragmentShaderOutput out;
-
-    switch(pipelineVariation){
-        case PIPELINE_VARIATION_LIGHT_SOURCE:
-            for(int i = 0; i < in->fragmentSize; i++){
-                in->fragments[i].color.x = 255.0;
-                in->fragments[i].color.y = 255.0;
-                in->fragments[i].color.z = 255.0;
-
-            }
-            break;
-        case PIPELINE_VARIATION_MESH:
-            for(int i = 0; i < in->fragmentSize; i++){
-                Vec3 texel = getTexturePixel(texture, in->fragments[i].data[7], in->fragments[i].data[8]);
-                in->fragments[i].color.x = (in->fragments[i].color.x * texel.x);
-                in->fragments[i].color.y = (in->fragments[i].color.y * texel.y);
-                in->fragments[i].color.z = (in->fragments[i].color.z * texel.z);
-
-                Vec3 inColor = (Vec3){in->fragments[i].color.x, in->fragments[i].color.y, in->fragments[i].color.z};
-                Vec3 inNormal = (Vec3){in->fragments[i].data[9], in->fragments[i].data[10], in->fragments[i].data[11]};
-                Vec3 inFragPos = (Vec3){in->fragments[i].data[12], in->fragments[i].data[13], in->fragments[i].data[14]};
-
-                float ambientStrength = 0.1;
-                float specularStrength = 0.5;
-                
-                Vec3 ambient = scalarMultiply3(ambientStrength, ubo->lightColor);
-
-                Vec3 norm = normalize(inNormal);
-                Vec3 lightDir = normalize(minus3(ubo->lightPos, inFragPos));
-
-                Vec3 viewDir = normalize(minus3(ubo->viewPos, inFragPos));
-                Vec3 reflectDir = reflect(scalarMultiply3(-1, lightDir), norm);  
-
-                float spec = pow(max(dot3(viewDir, reflectDir), 0.0), 128);
-                Vec3 specular = scalarMultiply3(specularStrength * spec, ubo->lightColor);
-
-                float diff = max(dot3(norm, lightDir), 0.0);
-                Vec3 diffuse = scalarMultiply3(diff, ubo->lightColor);
-
-                Vec3 globalLight = {0.4, 0.4, 0.4};
-
-                Vec3 result = multiply3(plus3(plus3(plus3(ambient, diffuse), specular), globalLight), inColor);
-
-                
-
-                in->fragments[i].color.x = result.x * texel.x/ 255.0;
-                in->fragments[i].color.y = result.y * texel.y/ 255.0;
-                in->fragments[i].color.z = result.z * texel.z/ 255.0;
-                free(in->fragments[i].data);
-            }
-            break;
-    }
-    
-    out.fragments = in->fragments;
-    out.fragmentSize = in->fragmentSize;
-
-    
-    
-    return out;
-}
 
 void clearDepthBuffer() {
     for (int i = 0; i < frame.height+1; i++) {
@@ -549,45 +452,9 @@ void clearFrameBuffer() {
         }
     }
 }
-void runMerger(FragmentShaderOutput *in, Texture* texture) {
-    for (int i = 0; i < in->fragmentSize; i++) {
-        int x = (int)in->fragments[i].position.x;
-        int y = (int)in->fragments[i].position.y;
 
-        if (x < 0 || x >= frame.width || y < 0 || y >= frame.height) {
-            fprintf(stderr, "⚠️ Fragment %d out of bounds: x = %d, y = %d\n", i, x, y);
-            continue;
-        }
 
-        int index = y * frame.width + x;
 
-        //REVERSE Z IMP
-        if (in->fragments[i].zval > depthBuffer[index]) {
-            depthBuffer[index] = in->fragments[i].zval;
-            
-            uint8_t r = clamp(in->fragments[i].color.x, 0, 255);
-            uint8_t g = clamp(in->fragments[i].color.y, 0, 255);
-            uint8_t b = clamp(in->fragments[i].color.z, 0, 255);
-            uint8_t a = clamp(in->fragments[i].color.w, 0, 255);
-            
-
-            //uint8_t r = (uint8_t)(tex.x * 255.0);
-            //uint8_t g = (uint8_t)(tex.y * 255.0);
-            //uint8_t b = (uint8_t)(tex.z * 255.0);
-            //uint8_t a = clamp(in->fragments[i].color.w, 0, 255);
-
-            uint32_t interp_color = (a << 24) | (r << 16) | (g << 8) | (b);
-
-            frame.pixels[index] = interp_color;
-        }
-    }
-}
-
-static inline uint8_t clamp(int value, int min, int max) {
-    if (value < min) return min;
-    if (value > max) return max;
-    return value;
-}
 
 
 double getTime() {
@@ -710,176 +577,6 @@ void handleMouse(long x, long y){
         pitch = -89.0;
     }
 
-}
-
-Vec3* load_png_as_vec3(const char* filename, int* out_width, int* out_height) {
-    int width, height, channels;
-    unsigned char* data = stbi_load(filename, &width, &height, &channels, 3);
-
-    if (!data) {
-        printf("Failed to load image: %s\n", stbi_failure_reason());
-        return NULL;
-    }
-
-    Vec3* pixels = malloc(sizeof(Vec3) * width * height);
-    if (!pixels) {
-        stbi_image_free(data);
-        return NULL;
-    }
-
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            int i = y * width + x;
-            pixels[i].x = data[i * 3 + 0];
-            pixels[i].y = data[i * 3 + 1];
-            pixels[i].z = data[i * 3 + 2];
-        }
-    }
-
-    stbi_image_free(data);
-
-    if (out_width) *out_width = width;
-    if (out_height) *out_height = height;
-
-    return pixels;
-}
-
-
-
-Texture createTexture(char* filename){
-    Texture out;
-    out.pixels = load_png_as_vec3(filename, &out.width, &out.height);
-    return out;
-}
-
-Vec3 getTexturePixel(Texture* pTex, float tx, float ty){
-    int ix = (int)(pTex->width  * tx);
-    int iy = (int)(pTex->height * ty);
-    if (ix >= pTex->width)  ix = pTex->width  - 1;
-    if (iy >= pTex->height) iy = pTex->height - 1;
-    if (ix < 0) {
-        ix = 0;
-    } 
-    if (iy < 0){
-        iy = 0;
-    }
-    return pTex->pixels[iy * pTex->width + ix];
-}
-
-MeshData loadOBJ(const char *filename) {
-    Vec3 *positions = NULL;
-    Vec3 *normals = NULL;
-    Vec2 *texcoords = NULL;
-
-    int posCount = 0, normCount = 0, texCount = 0;
-
-    int *faceIndices = NULL;
-    int faceIndexCount = 0;
-
-    MeshData mesh = {0};
-
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        fprintf(stderr, "Could not open %s\n", filename);
-        return mesh;
-    }
-
-    char line[256];
-    while (fgets(line, sizeof(line), file)) {
-        if (strncmp(line, "v ", 2) == 0) {
-            Vec3 p;
-            sscanf(line + 2, "%f %f %f", &p.x, &p.y, &p.z);
-            positions = realloc(positions, sizeof(Vec3) * (posCount + 1));
-            positions[posCount++] = p;
-        }
-        else if (strncmp(line, "vt ", 3) == 0) {
-            Vec2 t;
-            sscanf(line + 3, "%f %f", &t.x, &t.y);
-            texcoords = realloc(texcoords, sizeof(Vec2) * (texCount + 1));
-            texcoords[texCount++] = t;
-        }
-        else if (strncmp(line, "vn ", 3) == 0) {
-            Vec3 n;
-            sscanf(line + 3, "%f %f %f", &n.x, &n.y, &n.z);
-            normals = realloc(normals, sizeof(Vec3) * (normCount + 1));
-            normals[normCount++] = n;
-        }
-        else if (strncmp(line, "f ", 2) == 0) {
-            int v[4][3]; // pos/tex/norm indices
-            int count = sscanf(line + 2, "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
-                               &v[0][0], &v[0][1], &v[0][2],
-                               &v[1][0], &v[1][1], &v[1][2],
-                               &v[2][0], &v[2][1], &v[2][2],
-                               &v[3][0], &v[3][1], &v[3][2]);
-
-            int vertsInFace = (count == 9) ? 3 : 4;
-
-            // Triangulate if needed
-            if (vertsInFace == 3) {
-                for (int i = 0; i < 3; i++) {
-                    faceIndices = realloc(faceIndices, sizeof(int) * (faceIndexCount + 3));
-                    faceIndices[faceIndexCount++] = v[i][0] - 1; // pos index
-                    faceIndices[faceIndexCount++] = v[i][1] - 1; // tex index
-                    faceIndices[faceIndexCount++] = v[i][2] - 1; // norm index
-                }
-            } else if (vertsInFace == 4) {
-                int idxOrder[6] = {0, 1, 2, 0, 2, 3};
-                for (int k = 0; k < 6; k++) {
-                    int i = idxOrder[k];
-                    faceIndices = realloc(faceIndices, sizeof(int) * (faceIndexCount + 3));
-                    faceIndices[faceIndexCount++] = v[i][0] - 1;
-                    faceIndices[faceIndexCount++] = v[i][1] - 1;
-                    faceIndices[faceIndexCount++] = v[i][2] - 1;
-                }
-            }
-        }
-    }
-    fclose(file);
-
-    // Build final vertex buffer
-    int vertexSize = 3 + 3 + 2 + 3; // pos, color, tex, normal
-    mesh.vertexCount = (faceIndexCount / 3) * vertexSize;
-    mesh.vertices = malloc(sizeof(float) * mesh.vertexCount);
-    mesh.indexCount = faceIndexCount / 3;
-    mesh.indices = malloc(sizeof(int) * mesh.indexCount);
-
-    for (int i = 0; i < mesh.indexCount; i++) {
-        int pi = faceIndices[i * 3 + 0];
-        int ti = faceIndices[i * 3 + 1];
-        int ni = faceIndices[i * 3 + 2];
-
-        float *vert = &mesh.vertices[i * vertexSize];
-        vert[0] = positions[pi].x;
-        vert[1] = positions[pi].y;
-        vert[2] = positions[pi].z;
-
-        vert[3] = 0.5f; // color R
-        vert[4] = 0.5f; // color G
-        vert[5] = 0.5f; // color B
-
-        if (ti >= 0 && ti < texCount) {
-            vert[6] = texcoords[ti].x;
-            vert[7] = texcoords[ti].y;
-        } else {
-            vert[6] = vert[7] = 0.0f;
-        }
-
-        if (ni >= 0 && ni < normCount) {
-            vert[8]  = normals[ni].x;
-            vert[9]  = normals[ni].y;
-            vert[10] = normals[ni].z;
-        } else {
-            vert[8] = vert[9] = vert[10] = 0.0f;
-        }
-
-        mesh.indices[i] = i;
-    }
-
-    free(positions);
-    free(normals);
-    free(texcoords);
-    free(faceIndices);
-    return mesh;
 }
 
 
