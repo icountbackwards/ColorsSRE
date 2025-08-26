@@ -40,3 +40,6 @@ M = Freeze mouse input (toggle on/off)
 
 ESC = Quit application
 
+Note : This version does not support rendering for custom mesh object and texture files.
+ To render custom .obj mesh and .png image files, replace the .obj and .png files in /assets/ to your own .obj and .png files. And then rename the files to 'suzanne_smooth.obj' and 'gold.png'
+
