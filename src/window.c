@@ -1,0 +1,149 @@
+#include "window.h"
+
+void initWindowObject(WindowObject* windowObject, uint32_t width, uint32_t height, Instance* instance) {
+     // This function creates definition for windowObject
+    windowObject->width = width;
+    windowObject->height = height;
+
+    if (SDL_Init(SDL_INIT_VIDEO)) {
+        
+    }else{
+        printf("SDL_Init Error: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    windowObject->window = SDL_CreateWindow("SDL Framebuffer", width, height, 0);
+
+    if (!windowObject->window) {
+        printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
+        SDL_Quit();
+        exit(1);
+    }
+
+    windowObject->renderer = SDL_CreateRenderer(windowObject->window, NULL);
+    if (!windowObject->renderer) {
+        printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
+        SDL_DestroyWindow(windowObject->window);
+        SDL_Quit();
+        exit(1);
+    }
+
+    windowObject->framebuffer = SDL_CreateTexture(windowObject->renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        width, height);
+
+    if (!windowObject->framebuffer) {
+        printf("SDL_CreateTexture Error: %s\n", SDL_GetError());
+        SDL_DestroyRenderer(windowObject->renderer);
+        SDL_DestroyWindow(windowObject->window);
+        SDL_Quit();
+        exit(1);
+    }
+
+    instance->frameBuffer = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
+    if (!instance->frameBuffer) {
+        printf("Failed to allocate framebuffer memory\n");
+        SDL_DestroyTexture(windowObject->framebuffer);
+        SDL_DestroyRenderer(windowObject->renderer);
+        SDL_DestroyWindow(windowObject->window);
+        SDL_Quit();
+        exit(1);
+    }
+
+    windowObject->isRunning = true;
+    windowObject->framebufferSize = width * height;
+}
+
+void processEvent(WindowObject* windowObject, Instance* instance){
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+    switch (event.type) {
+        case SDL_EVENT_QUIT:
+            instance->isRunning = false;
+            break;
+
+        case SDL_EVENT_KEY_DOWN:
+            switch (event.key.key) {
+                case SDLK_W:
+                    instance->cameraPos = plus3(instance->cameraPos,
+                                               scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
+                    break;
+                case SDLK_A:
+                    instance->cameraPos = plus3(instance->cameraPos,
+                                               scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
+                    break;
+                case SDLK_S:
+                    instance->cameraPos = minus3(instance->cameraPos,
+                                                scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
+                    break;
+                case SDLK_D:
+                    instance->cameraPos = minus3(instance->cameraPos,
+                                                scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
+                    break;
+                case SDLK_M:
+                    instance->mouseFreeze = !instance->mouseFreeze;
+                    instance->mouseDeltaFreeze = true;
+                    break;
+                case SDLK_B:
+                    instance->backtofront = true;
+                    break;
+                case SDLK_ESCAPE:
+                    instance->isRunning = false;
+                    break;
+                case SDLK_V:
+                    instance->isVertical = !instance->isVertical;
+                    break;
+                case SDLK_I:
+                    if (instance->isVertical) {
+                        instance->lightPosition.y += instance->cameraSpeed;
+                    } else {
+                        instance->lightPosition.z -= instance->cameraSpeed;
+                    }
+                    break;
+                case SDLK_J:
+                    instance->lightPosition.x += instance->cameraSpeed;
+                    break;
+                case SDLK_K:
+                    if (instance->isVertical) {
+                        instance->lightPosition.y -= instance->cameraSpeed;
+                    } else {
+                        instance->lightPosition.z += instance->cameraSpeed;
+                    }
+                    break;
+                case SDLK_L:
+                    instance->lightPosition.x -= instance->cameraSpeed;
+                    break;
+                case SDLK_UP:
+                    instance->objrotate0 -= 0.1;
+                    break;
+                case SDLK_DOWN:
+                    instance->objrotate0 += 0.1;
+                    break;
+                case SDLK_LEFT:
+                    instance->objrotate1 += 0.1;
+                    break;
+                case SDLK_RIGHT:
+                    instance->objrotate1 -= 0.1;
+                    break;
+            }
+            break;
+    }
+}
+}
+
+void presentScreen(WindowObject* windowObject, Instance* instance){
+     // This function presents the rendered framebuffer onto the screen
+    SDL_UpdateTexture(windowObject->framebuffer , NULL, instance->frameBuffer, windowObject->width * sizeof (uint32_t));
+    SDL_RenderClear(windowObject->renderer);
+    SDL_RenderTexture(windowObject->renderer, windowObject->framebuffer , NULL, NULL);
+    SDL_RenderPresent(windowObject->renderer);
+}
+void destroyWindow(WindowObject* windowObject, Instance* instance){
+    // Cleanup and destroy after exiting the application render loop
+    SDL_DestroyRenderer(windowObject->renderer);
+    SDL_DestroyWindow(windowObject->window);
+    SDL_Quit();
+
+    free(instance->frameBuffer);
+}

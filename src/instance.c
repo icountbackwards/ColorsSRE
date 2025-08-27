@@ -34,6 +34,8 @@ void createInstance(Instance* instance, int width, int height){
 
     instance->deltaTime = 0.0;
     instance->lastFrame = 0.0;
+
+    instance->lightColor = (Vec3){1.0, 1.0, 1.0};
 }
 
 void clearDepthBuffer(Instance* instance) {
@@ -83,4 +85,69 @@ VertexBuffer generateVertexBuffer(float* data, int* indices, int* layout, int da
     newvbo.indicesSize = indicesSize;
     newvbo.layoutSize = layoutSize;
     return newvbo;
+}
+
+void handleKeypress(int key, Instance* instance){
+    switch(key){
+        case KEY_W:
+            instance->cameraPos = plus3(instance->cameraPos, scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
+            break;
+        case KEY_A:
+            instance->cameraPos = plus3(instance->cameraPos, scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
+            break;
+        case KEY_S:
+            instance->cameraPos = minus3(instance->cameraPos, scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
+            break;
+        case KEY_D:
+            instance->cameraPos = minus3(instance->cameraPos, scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
+            break;
+        case KEY_M:
+            instance->mouseFreeze = !instance->mouseFreeze;
+            instance->mouseDeltaFreeze = true;
+            break;
+        case KEY_B:
+            instance->backtofront = true;
+            break;
+        case KEY_ESC:
+            instance->isRunning = false;
+            break;
+        case KEY_V:
+            instance->isVertical = !instance->isVertical;
+            break;
+        case KEY_I:
+            if(instance->isVertical){
+                instance->lightPosition.y += instance->cameraSpeed;
+            } else{
+                instance->lightPosition.z -= instance->cameraSpeed;
+            }
+            break;
+        case KEY_J:
+            //cameraPos = plus3(cameraPos, scalarMultiply3(cameraSpeed, cross(cameraFront, cameraUp)));
+            instance->lightPosition.x += instance->cameraSpeed;
+            break;
+        case KEY_K:
+            //cameraPos = minus3(cameraPos, scalarMultiply3(cameraSpeed, cameraFront));
+            if(instance->isVertical){
+                instance->lightPosition.y -= instance->cameraSpeed;
+            } else{
+                instance->lightPosition.z += instance->cameraSpeed;
+            }
+            break;
+        case KEY_L:
+            //cameraPos = minus3(cameraPos, scalarMultiply3(cameraSpeed, cross(cameraFront, cameraUp)));
+            instance->lightPosition.x -= instance->cameraSpeed;
+            break;
+        case KEY_UP: // same as W
+            instance->objrotate0 -= 0.1;
+            break;
+        case KEY_DOWN: // same as S
+            instance->objrotate0 += 0.1;
+            break;
+        case KEY_LEFT: // same as A
+            instance->objrotate1 += 0.1;
+            break;
+        case KEY_RIGHT: // same as D
+            instance->objrotate1 -= 0.1;
+            break;
+    }
 }

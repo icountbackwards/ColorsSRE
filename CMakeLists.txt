@@ -17,10 +17,24 @@ add_executable(${PROJECT_NAME}
     src/objects.c
     src/merger.c
     src/instance.c
+    src/window.c
 )
 
 # Include project headers
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include/pipeline
+    ${PROJECT_SOURCE_DIR}/external/SDL/include
+)
+
+# Link SDL
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${PROJECT_SOURCE_DIR}/external/SDL/lib/libSDL3.dll.a
+)
+
+# Copy SDL DLL after build
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/external/SDL/bin/SDL3.dll
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>
 )

@@ -43,9 +43,6 @@ Mat4 identityMat4 = {
 bool debug = true;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
-
-
-
 double getTime();
 
 Instance instance;
@@ -109,20 +106,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
         //frame.pixels[rand()%(frame.width*frame.height)] = 0X00ff0000;
 
         //
-        
-        clearFrameBuffer(&instance);
-        clearDepthBuffer(&instance);
-
-        Mat4 model = identityMat4;
 
         float time = getTime();
-        
         float currentFrame = time;
         instance.deltaTime = currentFrame - instance.lastFrame;
         instance.lastFrame = currentFrame;
 
+        frameCount++;
+        double currentTime = time;
+        double elapsed = currentTime - instance.lastTime;
+        if (elapsed >= 1.0) { // Every 1 second
+            printf("FPS: %d\n", frameCount);
+            frameCount = 0;
+            instance.lastTime = currentTime;
+        }
+
         instance.cameraSpeed = 5.0 * instance.deltaTime;
-        
         Vec3 direction;
         direction.z = cos((instance.yaw * TWO_PI) / 180) * cos ((instance.pitch * TWO_PI) / 180);
         direction.y = -sin((instance.pitch * TWO_PI) / 180);
@@ -136,13 +135,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
             instance.pitch = 0.0;
             instance.backtofront = false;
         }
+        
+        clearFrameBuffer(&instance);
+        clearDepthBuffer(&instance);
+
+        Mat4 model = identityMat4;
         Mat4 view = lookAt(instance.cameraPos, plus3(instance.cameraPos, instance.cameraFront), instance.cameraUp);
-
-        //REVERSE Z IMP
         Mat4 projection = perspective(45.0, ((float)instance.frameWidth)/((float)instance.frameHeight), 100.0, 0.1);
-        //Mat4 projection = perspective(45.0, ((float)frame.width)/((float)frame.height), 0.1, 100.0);
-
-        model = identityMat4;
         rotate4(&model, instance.objrotate0, 0);
         rotate4(&model, instance.objrotate1, 1);
         rotate4(&model, instance.objrotate2, 2);
@@ -150,8 +149,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
         ubo1.model = model;
         ubo1.view = view;
         ubo1.projection = projection;
-        ubo1.objectColor = (Vec3){1.0, 0.5, 1.0};
-        ubo1.lightColor = (Vec3){1.0, 1.0, 1.0};
+        ubo1.objectColor = (Vec3){1.0, 1.0, 1.0};
+        ubo1.lightColor = instance.lightColor;
         ubo1.lightPos = instance.lightPosition;
         ubo1.viewPos = instance.cameraPos;
         //draw(&vbo1, &ubo1, &texture1, PIPELINE_VARIATION_MESH);
@@ -165,16 +164,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
         ubo1.view = view;
         ubo1.projection = projection;
         draw(&lightvbo, &ubo1, &notexture, PIPELINE_VARIATION_LIGHT_SOURCE, &instance);
-        
 
-        frameCount++;
-        double currentTime = time;
-        double elapsed = currentTime - instance.lastTime;
-        if (elapsed >= 1.0) { // Every 1 second
-            printf("FPS: %d\n", frameCount);
-            frameCount = 0;
-            instance.lastTime = currentTime;
-        }
 
         InvalidateRect(hwnd, NULL, FALSE);
         UpdateWindow(hwnd);
