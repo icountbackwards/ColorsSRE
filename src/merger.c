@@ -16,10 +16,10 @@ void runMerger(FragmentShaderOutput *in, Texture* texture, int width, int height
         if (in->fragments[i].zval > depthBuffer[index]) {
             depthBuffer[index] = in->fragments[i].zval;
             
-            uint8_t r = clamp(in->fragments[i].color.x, 0, 255);
-            uint8_t g = clamp(in->fragments[i].color.y, 0, 255);
-            uint8_t b = clamp(in->fragments[i].color.z, 0, 255);
-            uint8_t a = clamp(in->fragments[i].color.w, 0, 255);
+            uint8_t r = clamp(in->fragments[i].color.x, 0, 255) *255;
+            uint8_t g = clamp(in->fragments[i].color.y, 0, 255) *255;
+            uint8_t b = clamp(in->fragments[i].color.z, 0, 255) *255;
+            uint8_t a = clamp(in->fragments[i].color.w, 0, 255) *255;
             
 
             //uint8_t r = (uint8_t)(tex.x * 255.0);

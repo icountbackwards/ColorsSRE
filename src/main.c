@@ -19,6 +19,7 @@
 #include "pipeline/pipeline.h"
 #include "instance.h"
 #include "objects.h"
+#include "window.h"
 
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
@@ -46,6 +47,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 double getTime();
 
 Instance instance;
+WindowObject windowObject;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow){
 
@@ -64,9 +66,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     createInstance(&instance, SCREEN_WIDTH, SCREEN_HEIGHT);
     instance.lastTime = getTime();
     instance.depthBuffer = malloc(sizeof(float) * (instance.frameWidth+1) * (instance.frameHeight+1));
+    
 
     HWND hwnd = CreateWindow((PCSTR)window_class_name, "ColorsSRE", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, instance.frameWidth + 16 + 1, instance.frameHeight + 39 + 1, NULL, NULL, hInstance, NULL);
 
+    initWindowObject(&windowObject, SCREEN_WIDTH, SCREEN_HEIGHT, &instance);
     ShowWindow(hwnd, nCmdShow);
 
     int frameCount = 0;
@@ -87,6 +91,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
+        processEvent(&windowObject, &instance);
 
         GetCursorPos(&instance.mousepos);
         if(!instance.mouseFreeze && !instance.mouseDeltaFreeze){
@@ -168,9 +173,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 
         InvalidateRect(hwnd, NULL, FALSE);
         UpdateWindow(hwnd);
+
+        presentScreen(&windowObject, &instance);
     }
 
     free(instance.depthBuffer);
+    destroyWindow(&windowObject, &instance);
 
     return 0;
 }
@@ -299,8 +307,6 @@ double getTime() {
 
     return (double)(now.QuadPart - start.QuadPart) / (double)frequency.QuadPart;
 }
-
-
 
 
 

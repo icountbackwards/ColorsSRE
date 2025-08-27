@@ -29,7 +29,7 @@ void initWindowObject(WindowObject* windowObject, uint32_t width, uint32_t heigh
     }
 
     windowObject->framebuffer = SDL_CreateTexture(windowObject->renderer,
-        SDL_PIXELFORMAT_RGBA8888,
+        SDL_PIXELFORMAT_BGRA8888,
         SDL_TEXTUREACCESS_STREAMING,
         width, height);
 
@@ -41,15 +41,15 @@ void initWindowObject(WindowObject* windowObject, uint32_t width, uint32_t heigh
         exit(1);
     }
 
-    instance->frameBuffer = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
-    if (!instance->frameBuffer) {
-        printf("Failed to allocate framebuffer memory\n");
-        SDL_DestroyTexture(windowObject->framebuffer);
-        SDL_DestroyRenderer(windowObject->renderer);
-        SDL_DestroyWindow(windowObject->window);
-        SDL_Quit();
-        exit(1);
-    }
+    //instance->frameBuffer = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
+    //if (!instance->frameBuffer) {
+    //    printf("Failed to allocate framebuffer memory\n");
+    //    SDL_DestroyTexture(windowObject->framebuffer);
+    //    SDL_DestroyRenderer(windowObject->renderer);
+    //    SDL_DestroyWindow(windowObject->window);
+    //    SDL_Quit();
+    //    exit(1);
+    //}
 
     windowObject->isRunning = true;
     windowObject->framebufferSize = width * height;
@@ -132,11 +132,23 @@ void processEvent(WindowObject* windowObject, Instance* instance){
 }
 }
 
-void presentScreen(WindowObject* windowObject, Instance* instance){
-     // This function presents the rendered framebuffer onto the screen
-    SDL_UpdateTexture(windowObject->framebuffer , NULL, instance->frameBuffer, windowObject->width * sizeof (uint32_t));
+void presentScreen(WindowObject* windowObject, Instance* instance) {
+    SDL_UpdateTexture(windowObject->framebuffer, NULL, instance->frameBuffer,
+                      windowObject->width * sizeof(uint32_t));
+
     SDL_RenderClear(windowObject->renderer);
-    SDL_RenderTexture(windowObject->renderer, windowObject->framebuffer , NULL, NULL);
+
+    SDL_FRect dst = {0, 0, windowObject->width, windowObject->height};
+    SDL_RenderTextureRotated(
+        windowObject->renderer,
+        windowObject->framebuffer,
+        NULL,   // source rectangle (NULL = full texture)
+        &dst,   // destination rectangle
+        0.0,    // rotation
+        NULL,   // rotation center
+        SDL_FLIP_VERTICAL // flip vertically
+    );
+
     SDL_RenderPresent(windowObject->renderer);
 }
 void destroyWindow(WindowObject* windowObject, Instance* instance){
@@ -145,5 +157,5 @@ void destroyWindow(WindowObject* windowObject, Instance* instance){
     SDL_DestroyWindow(windowObject->window);
     SDL_Quit();
 
-    free(instance->frameBuffer);
+    //free(instance->frameBuffer);
 }
