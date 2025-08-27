@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
     src/fragment_shader.c
     src/objects.c
     src/merger.c
+    src/instance.c
 )
 
 # Include project headers

@@ -1,6 +1,12 @@
 #pragma once
 
+#include <Windows.h>
+
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "math_utils.h"
+#include "objects.h"
 
 typedef struct {
     float *data;
@@ -20,3 +26,48 @@ typedef struct {
     Vec3 lightPos;
     Vec3 viewPos;
 } UniformBuffer;
+
+typedef struct {
+    int frameWidth;
+    int frameHeight;
+
+    uint32_t* frameBuffer;
+    float* depthBuffer;
+
+    bool isRunning;
+
+    double lastTime;
+
+    bool mouseFreeze;
+    bool mouseDeltaFreeze;
+    POINT mousepos;
+    POINT mouseDeltaPos;
+    POINT mouseLastPos;
+    float yaw;
+    float pitch;
+    float objrotate0;
+    float objrotate1;
+    float objrotate2;
+    float mouseSensitivity;
+    Vec3 cameraPos;
+    Vec3 cameraFront;
+    Vec3 cameraUp;
+    Vec3 lightPosition;
+    bool isVertical;
+    float cameraSpeed;
+    bool backtofront;
+    float deltaTime;
+    float lastFrame;
+    UniformBuffer *UniformBufferRegister;
+    MeshData objmesh;
+    VertexBuffer objvbo;
+} Instance;
+
+void createInstance(Instance* instance, int width, int height);
+
+void clearDepthBuffer(Instance* instance);
+void clearFrameBuffer(Instance* instance);
+
+void handleMouse(long x, long y, Instance* instance);
+
+VertexBuffer generateVertexBuffer(float* data, int* indices, int* layout, int datasize, int indicesSize, int layoutSize);

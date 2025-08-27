@@ -7,3 +7,7 @@
 #include "fragment_shader.h"
 #include "merger.h"
 
+#include "./instance.h"
+
+void draw(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, int pipelineVariation, Instance* instance);
+
