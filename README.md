@@ -28,7 +28,7 @@ cmake --build . --config Release
 ## v1.0.0 Additions
 
 - Added support for rendering custom .obj meshes and .png files
-- 
+  
 - Uses SDL3 to render frame buffer
 
 Keyboard bindings:
