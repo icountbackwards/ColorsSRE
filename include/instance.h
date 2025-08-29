@@ -80,6 +80,10 @@ typedef struct {
     Vec3 lightColor;
 
     uint32_t** pPixels;
+
+    MeshData mesh;
+    Texture texture;
+    VertexBuffer vbo;
 } Instance;
 
 void createInstance(Instance* instance, int width, int height);

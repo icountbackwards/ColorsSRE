@@ -37,6 +37,9 @@ Vec3* load_png_as_vec3(const char* filename, int* out_width, int* out_height) {
 Texture createTexture(char* filename){
     Texture out;
     out.pixels = load_png_as_vec3(filename, &out.width, &out.height);
+    if(!out.pixels){
+        out.width = -1;
+    }
     return out;
 }
 
@@ -65,6 +68,7 @@ MeshData loadOBJ(const char *filename) {
     int faceIndexCount = 0;
 
     MeshData mesh = {0};
+    mesh.indexCount = -1;
 
     FILE *file = fopen(filename, "r");
     if (!file) {

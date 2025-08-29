@@ -27,8 +27,8 @@ int SCREEN_HEIGHT = 600;
 UniformBuffer *UniformBufferRegister;
 Texture notexture;
 
-MeshData suzanne_flat;
-VertexBuffer suzanne_flat_vbo;
+MeshData objectMesh;
+VertexBuffer objectVBO;
 
 Mat4 identityMat4 = {
     {1, 0, 0, 0},
@@ -40,19 +40,20 @@ Mat4 identityMat4 = {
 bool debug = true;
 
 double getTime();
+void handleApplicationArguments(int argc, char* argv[]);
+
+void loadDefaultMeshObject();
+void loadDefaultTextureImage();
+void loadMeshObject(char* argv);
 
 Instance instance;
 WindowObject windowObject;
 
 int main(int argc, char *argv[]){
-
-    
     
     createInstance(&instance, SCREEN_WIDTH, SCREEN_HEIGHT);
     instance.lastTime = getTime();
     instance.depthBuffer = malloc(sizeof(float) * (instance.frameWidth+1) * (instance.frameHeight+1));
-    //clearFrameBuffer(&instance);
-    
 
     initWindowObject(&windowObject, SCREEN_WIDTH, SCREEN_HEIGHT, &instance);
     instance.pPixels = &windowObject.pixels;
@@ -64,24 +65,16 @@ int main(int argc, char *argv[]){
     
     UniformBuffer ubo1;
 
+    handleApplicationArguments(argc, argv);
+
     Texture texture1 = createTexture("../assets/gold.png");
 
-    suzanne_flat = loadOBJ("../assets/suzanne_smooth.obj");
-    suzanne_flat_vbo = generateVertexBuffer(suzanne_flat.vertices, suzanne_flat.indices, vbo1layout, suzanne_flat.vertexCount, suzanne_flat.indexCount, vbo1layoutsize);
+    
 
     while(instance.isRunning){
-        //static MSG msg = { 0 };
-        //while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
-        //    TranslateMessage(&msg);
-        //    DispatchMessage(&msg);
-        //}
         processEvent(&windowObject, &instance);
 
-        //GetCursorPos(&instance.mousepos);
-        float x, y;
-        SDL_GetMouseState(&x, &y);
-        instance.mousepos.x = x;
-        instance.mousepos.y = y;
+        SDL_GetMouseState(&instance.mousepos.x, &instance.mousepos.y);
         if(!instance.mouseFreeze && !instance.mouseDeltaFreeze){
             handleMouse(instance.mousepos.x, instance.mousepos.y, &instance);
         }
@@ -147,7 +140,7 @@ int main(int argc, char *argv[]){
         ubo1.lightPos = instance.lightPosition;
         ubo1.viewPos = instance.cameraPos;
         //draw(&vbo1, &ubo1, &texture1, PIPELINE_VARIATION_MESH);
-        draw(&suzanne_flat_vbo, &ubo1, &texture1, PIPELINE_VARIATION_MESH, &instance);
+        draw(&instance.vbo, &ubo1, &instance.texture, PIPELINE_VARIATION_MESH, &instance);
 
 
         model = identityMat4;
@@ -177,6 +170,70 @@ double getTime() {
     uint64_t freq = SDL_GetPerformanceFrequency();
 
     return (double)(now - start) / (double)freq;
+}
+
+void handleApplicationArguments(int argc, char* argv[]){
+    /*
+        This function handles the command line arguments passed when running the application
+        Argument format: 
+            1. Render default mesh with default texture (No arguments needed) => ColorsSRE.exe
+            2. Render custom mesh with default texture => ColorsSRE.exe MESH_LOCATION_DIRECTORY/Mesh.obj default_texture
+            3. Render default mesh with custom texture => ColorsSRE.exe default_mesh TEXTURE_LOCATION_DIRECTORY/TextureImage.png
+            4. Render custom mesh with custom texture => ColorsSRE.exe MESH_LOCATION_DIRECTORY/Mesh.obj TEXTURE_LOCATION_DIRECTORY/TextureImage.png\
+            5. ColorsSRE.exe default_mesh default_texture also works
+            6. Above second and third arguments are ignored
+        s
+        Note: If the argument(s) passed is invalid, default asset will be used instead
+    */
+
+    if (argc == 1) {
+        //Format 1
+        printf("No parameters were provided, using default assets\n");
+        loadDefaultMeshObject();
+        loadDefaultTextureImage();
+    } else {
+        if(strcmp(argv[1], "default_mesh") == 0){
+            printf("using default mesh\n");
+            loadDefaultMeshObject();
+        }else{
+            loadMeshObject(argv[1]);
+            if(instance.mesh.indexCount == -1){
+                loadDefaultMeshObject();
+            }
+        }
+        if(strcmp(argv[2], "default_texture") == 0){
+            printf("using default texture\n");
+            loadDefaultTextureImage();
+        }else{
+            instance.texture = createTexture(argv[2]);
+            if(instance.texture.width == -1){
+                printf("Using default texture image instead\n");
+                loadDefaultTextureImage();
+            }
+        }
+    }
+
+}
+
+void loadDefaultMeshObject(){
+    instance.mesh = loadOBJ("../assets/suzanne_smooth.obj");
+    instance.vbo = generateVertexBuffer(instance.mesh.vertices, instance.mesh.indices, vbo1layout, instance.mesh.vertexCount, instance.mesh.indexCount, vbo1layoutsize);
+
+}
+
+void loadDefaultTextureImage(){
+    instance.texture = createTexture("../assets/gold.png");
+}
+
+void loadMeshObject(char* argv){
+    instance.mesh = loadOBJ(argv);
+    if(instance.mesh.indexCount == -1){
+        loadDefaultMeshObject();
+        printf("Using default mesh object instead\n");
+    }else{
+        
+        instance.vbo = generateVertexBuffer(instance.mesh.vertices, instance.mesh.indices, vbo1layout, instance.mesh.vertexCount, instance.mesh.indexCount, vbo1layoutsize);
+    }
 }
 
 
