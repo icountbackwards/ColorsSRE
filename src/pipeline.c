@@ -2,6 +2,8 @@
 
 
 void draw(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, int pipelineVariation, Instance* instance){
+
+    
     
     VertexShaderOutput vertexShaderOutput = runVertexShader(vbo, ubo, pipelineVariation);
     
@@ -17,7 +19,7 @@ void draw(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, int 
     
     FragmentShaderOutput fragmentShaderOutput = runFragmentShader(&triangleTraversalOutput, pTextureResource, ubo, pipelineVariation);
 
-    runMerger(&fragmentShaderOutput, pTextureResource, instance->frameWidth, instance->frameHeight, instance->depthBuffer, instance->frameBuffer);
+    runMerger(&fragmentShaderOutput, pTextureResource, instance->frameWidth, instance->frameHeight, instance->depthBuffer, instance->frameBuffer, instance->pPixels);
 
     free(vertexShaderOutput.vertices);
     free(vertexShaderOutput.layout);    

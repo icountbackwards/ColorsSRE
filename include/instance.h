@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Windows.h>
-
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -57,9 +55,9 @@ typedef struct {
 
     bool mouseFreeze;
     bool mouseDeltaFreeze;
-    POINT mousepos;
-    POINT mouseDeltaPos;
-    POINT mouseLastPos;
+    Vec2 mousepos;
+    Vec2 mouseDeltaPos;
+    Vec2 mouseLastPos;
     float yaw;
     float pitch;
     float objrotate0;
@@ -80,6 +78,8 @@ typedef struct {
     VertexBuffer objvbo;
 
     Vec3 lightColor;
+
+    uint32_t** pPixels;
 } Instance;
 
 void createInstance(Instance* instance, int width, int height);

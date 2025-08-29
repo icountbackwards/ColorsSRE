@@ -49,9 +49,9 @@ void clearDepthBuffer(Instance* instance) {
 }
 
 void clearFrameBuffer(Instance* instance) {
-    for (int i = 0; i < instance->frameHeight+1; i++) {
-        for (int j = 0; j < instance->frameWidth+1; j++) {
-            instance->frameBuffer[i * instance->frameWidth + j] = 0x00000000;
+    for (int i = 0; i < instance->frameHeight; i++) {
+        for (int j = 0; j < instance->frameWidth; j++) {
+            (*instance->pPixels)[i * instance->frameWidth + j] = 0xFF000000;
         }
     }
 }

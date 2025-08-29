@@ -12,7 +12,7 @@ void initWindowObject(WindowObject* windowObject, uint32_t width, uint32_t heigh
         exit(1);
     }
 
-    windowObject->window = SDL_CreateWindow("SDL Framebuffer", width, height, 0);
+    windowObject->window = SDL_CreateWindow("ColorsSRE", width, height, 0);
 
     if (!windowObject->window) {
         printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
@@ -29,9 +29,9 @@ void initWindowObject(WindowObject* windowObject, uint32_t width, uint32_t heigh
     }
 
     windowObject->framebuffer = SDL_CreateTexture(windowObject->renderer,
-        SDL_PIXELFORMAT_BGRA8888,
-        SDL_TEXTUREACCESS_STREAMING,
-        width, height);
+    SDL_PIXELFORMAT_ARGB8888,
+    SDL_TEXTUREACCESS_STREAMING,
+    width, height);
 
     if (!windowObject->framebuffer) {
         printf("SDL_CreateTexture Error: %s\n", SDL_GetError());
@@ -41,18 +41,22 @@ void initWindowObject(WindowObject* windowObject, uint32_t width, uint32_t heigh
         exit(1);
     }
 
-    //instance->frameBuffer = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
-    //if (!instance->frameBuffer) {
-    //    printf("Failed to allocate framebuffer memory\n");
-    //    SDL_DestroyTexture(windowObject->framebuffer);
-    //    SDL_DestroyRenderer(windowObject->renderer);
-    //    SDL_DestroyWindow(windowObject->window);
-    //    SDL_Quit();
-    //    exit(1);
-    //}
+    windowObject->pixels = (uint32_t*)malloc(sizeof(uint32_t) * width * height);
+    if (!windowObject->pixels) {
+        printf("Failed to allocate framebuffer memory\n");
+        SDL_DestroyTexture(windowObject->framebuffer);
+        SDL_DestroyRenderer(windowObject->renderer);
+        SDL_DestroyWindow(windowObject->window);
+        SDL_Quit();
+        exit(1);
+    }
+    for(int i = 0; i < width * height; i++){
+        windowObject->pixels[i] = 0xFF000000;
+    }
 
     windowObject->isRunning = true;
     windowObject->framebufferSize = width * height;
+
 }
 
 void processEvent(WindowObject* windowObject, Instance* instance){
@@ -133,7 +137,7 @@ void processEvent(WindowObject* windowObject, Instance* instance){
 }
 
 void presentScreen(WindowObject* windowObject, Instance* instance) {
-    SDL_UpdateTexture(windowObject->framebuffer, NULL, instance->frameBuffer,
+    SDL_UpdateTexture(windowObject->framebuffer, NULL, windowObject->pixels,
                       windowObject->width * sizeof(uint32_t));
 
     SDL_RenderClear(windowObject->renderer);
@@ -148,14 +152,17 @@ void presentScreen(WindowObject* windowObject, Instance* instance) {
         NULL,   // rotation center
         SDL_FLIP_VERTICAL // flip vertically
     );
+    
 
     SDL_RenderPresent(windowObject->renderer);
 }
+
 void destroyWindow(WindowObject* windowObject, Instance* instance){
     // Cleanup and destroy after exiting the application render loop
     SDL_DestroyRenderer(windowObject->renderer);
     SDL_DestroyWindow(windowObject->window);
     SDL_Quit();
 
-    //free(instance->frameBuffer);
+    free(instance->frameBuffer);
+    free(windowObject->pixels);
 }

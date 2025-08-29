@@ -1,4 +1,4 @@
-#include <Windows.h>
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <assert.h>
@@ -24,10 +24,6 @@
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 
-static BITMAPINFO frame_bitmap_info;
-static HBITMAP frame_bitmap = 0;
-static HDC frame_device_context = 0;
-
 UniformBuffer *UniformBufferRegister;
 Texture notexture;
 
@@ -43,37 +39,25 @@ Mat4 identityMat4 = {
 
 bool debug = true;
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 double getTime();
 
 Instance instance;
 WindowObject windowObject;
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow){
+int main(int argc, char *argv[]){
 
-    static WNDCLASS window_class = { 0 };
-    static const wchar_t window_class_name[] = L"WindowClass";
-    window_class.lpszClassName = (PCSTR)window_class_name;
-    window_class.lpfnWndProc = WindowProc;
-    window_class.hInstance = hInstance;
-    RegisterClass(&window_class);
-    frame_bitmap_info.bmiHeader.biSize = sizeof(frame_bitmap_info.bmiHeader);
-    frame_bitmap_info.bmiHeader.biPlanes = 1;
-    frame_bitmap_info.bmiHeader.biBitCount = 32;
-    frame_bitmap_info.bmiHeader.biCompression = BI_RGB;
-    frame_device_context = CreateCompatibleDC(0);
-
+    
+    
     createInstance(&instance, SCREEN_WIDTH, SCREEN_HEIGHT);
     instance.lastTime = getTime();
     instance.depthBuffer = malloc(sizeof(float) * (instance.frameWidth+1) * (instance.frameHeight+1));
+    //clearFrameBuffer(&instance);
     
 
-    HWND hwnd = CreateWindow((PCSTR)window_class_name, "ColorsSRE", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, instance.frameWidth + 16 + 1, instance.frameHeight + 39 + 1, NULL, NULL, hInstance, NULL);
-
     initWindowObject(&windowObject, SCREEN_WIDTH, SCREEN_HEIGHT, &instance);
-    ShowWindow(hwnd, nCmdShow);
+    instance.pPixels = &windowObject.pixels;
 
-    int frameCount = 0;
+    int frameCount = 0; 
 
     VertexBuffer vbo1 = generateVertexBuffer(vbo1data, vbo1indices, vbo1layout, vbo1size, vbo1indicesSize, vbo1layoutsize);
     VertexBuffer lightvbo = generateVertexBuffer(lightdata, lightindices, lightlayout, lightsize, lightindicessize, lightlayoutsize);
@@ -86,14 +70,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     suzanne_flat_vbo = generateVertexBuffer(suzanne_flat.vertices, suzanne_flat.indices, vbo1layout, suzanne_flat.vertexCount, suzanne_flat.indexCount, vbo1layoutsize);
 
     while(instance.isRunning){
-        static MSG msg = { 0 };
-        while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+        //static MSG msg = { 0 };
+        //while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
+        //    TranslateMessage(&msg);
+        //    DispatchMessage(&msg);
+        //}
         processEvent(&windowObject, &instance);
 
-        GetCursorPos(&instance.mousepos);
+        //GetCursorPos(&instance.mousepos);
+        float x, y;
+        SDL_GetMouseState(&x, &y);
+        instance.mousepos.x = x;
+        instance.mousepos.y = y;
         if(!instance.mouseFreeze && !instance.mouseDeltaFreeze){
             handleMouse(instance.mousepos.x, instance.mousepos.y, &instance);
         }
@@ -140,7 +128,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
             instance.pitch = 0.0;
             instance.backtofront = false;
         }
-        
+
         clearFrameBuffer(&instance);
         clearDepthBuffer(&instance);
 
@@ -170,10 +158,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
         ubo1.projection = projection;
         draw(&lightvbo, &ubo1, &notexture, PIPELINE_VARIATION_LIGHT_SOURCE, &instance);
 
-
-        InvalidateRect(hwnd, NULL, FALSE);
-        UpdateWindow(hwnd);
-
         presentScreen(&windowObject, &instance);
     }
 
@@ -183,129 +167,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     return 0;
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam){
-
-    switch(msg){
-        case WM_QUIT:
-        case WM_DESTROY: {
-            instance.isRunning = FALSE;
-        } break;
-
-        case WM_PAINT: {
-            static PAINTSTRUCT paint;
-            static HDC device_context;
-            device_context = BeginPaint(hwnd, &paint);
-            BitBlt(device_context,
-                    paint.rcPaint.left, paint.rcPaint.top,
-                    paint.rcPaint.right - paint.rcPaint.left, paint.rcPaint.bottom - paint.rcPaint.top,
-                    frame_device_context,
-                    paint.rcPaint.left, paint.rcPaint.top,
-                SRCCOPY);
-            EndPaint(hwnd, &paint);
-        }break;
-
-        case WM_SIZE:{
-            frame_bitmap_info.bmiHeader.biWidth = LOWORD(lparam);
-            frame_bitmap_info.bmiHeader.biHeight = HIWORD(lparam);
-            
-            if(frame_bitmap) DeleteObject(frame_bitmap);
-            frame_bitmap = CreateDIBSection(NULL, &frame_bitmap_info, DIB_RGB_COLORS, (void**)&instance.frameBuffer, 0, 0);
-            SelectObject(frame_device_context, frame_bitmap);
-
-            instance.frameWidth = LOWORD(lparam);
-            instance.frameHeight = HIWORD(lparam);
-        }break;
-
-        case WM_KEYDOWN:
-            switch (wparam) {
-                
-                case 'W':
-                    instance.cameraPos = plus3(instance.cameraPos, scalarMultiply3(instance.cameraSpeed, instance.cameraFront));
-                    break;
-                case 'A':
-                    instance.cameraPos = plus3(instance.cameraPos, scalarMultiply3(instance.cameraSpeed, cross(instance.cameraFront, instance.cameraUp)));
-                    break;
-                case 'S':
-                    instance.cameraPos = minus3(instance.cameraPos, scalarMultiply3(instance.cameraSpeed, instance.cameraFront));
-                    break;
-                case 'D':
-                    instance.cameraPos = minus3(instance.cameraPos, scalarMultiply3(instance.cameraSpeed, cross(instance.cameraFront, instance.cameraUp)));
-                    break;
-                case 'M':
-                    instance.mouseFreeze = !instance.mouseFreeze;
-                    instance.mouseDeltaFreeze = true;
-                    break;
-                case 'B':
-                    instance.backtofront = true;
-                    break;
-                case VK_ESCAPE:
-                    instance.isRunning = false;
-                    break;
-                case 'V':
-                    instance.isVertical = !instance.isVertical;
-                    break;
-                case 'I':
-                    if(instance.isVertical){
-                        instance.lightPosition.y += instance.cameraSpeed;
-                    } else{
-                        instance.lightPosition.z -= instance.cameraSpeed;
-                    }
-                    break;
-                case 'J':
-                    //cameraPos = plus3(cameraPos, scalarMultiply3(cameraSpeed, cross(cameraFront, cameraUp)));
-                    instance.lightPosition.x += instance.cameraSpeed;
-                    break;
-                case 'K':
-                    //cameraPos = minus3(cameraPos, scalarMultiply3(cameraSpeed, cameraFront));
-                    if(instance.isVertical){
-                        instance.lightPosition.y -= instance.cameraSpeed;
-                    } else{
-                        instance.lightPosition.z += instance.cameraSpeed;
-                    }
-                    break;
-                case 'L':
-                    //cameraPos = minus3(cameraPos, scalarMultiply3(cameraSpeed, cross(cameraFront, cameraUp)));
-                    instance.lightPosition.x -= instance.cameraSpeed;
-                    break;
-                case VK_UP: // same as W
-                    instance.objrotate0 -= 0.1;
-                    break;
-                case VK_DOWN: // same as S
-                    instance.objrotate0 += 0.1;
-                    break;
-                case VK_LEFT: // same as A
-                    instance.objrotate1 += 0.1;
-                    break;
-                case VK_RIGHT: // same as D
-                    instance.objrotate1 -= 0.1;
-                    break;
-            }
-            break;
-            
-
-        default: {
-            return DefWindowProc(hwnd, msg, wparam, lparam);
-        } break;
-    }
-    return 0;
-}
-
-
 double getTime() {
-    static LARGE_INTEGER frequency;
-    static LARGE_INTEGER start;
-    static int initialized = 0;
-
-    if (!initialized) {
-        QueryPerformanceFrequency(&frequency);
-        QueryPerformanceCounter(&start);
-        initialized = 1;
+    static uint64_t start = 0;
+    if (start == 0) {
+        start = SDL_GetPerformanceCounter();
     }
 
-    LARGE_INTEGER now;
-    QueryPerformanceCounter(&now);
+    uint64_t now = SDL_GetPerformanceCounter();
+    uint64_t freq = SDL_GetPerformanceFrequency();
 
-    return (double)(now.QuadPart - start.QuadPart) / (double)frequency.QuadPart;
+    return (double)(now - start) / (double)freq;
 }
 
 
