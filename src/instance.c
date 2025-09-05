@@ -76,17 +76,6 @@ void handleMouse(long x, long y, Instance* instance){
 
 }
 
-VertexBuffer generateVertexBuffer(float* data, int* indices, int* layout, int datasize, int indicesSize, int layoutSize){
-    VertexBuffer newvbo;
-    newvbo.data = data;
-    newvbo.indices = indices;
-    newvbo.layout = layout;
-    newvbo.dataSize = datasize;
-    newvbo.indicesSize = indicesSize;
-    newvbo.layoutSize = layoutSize;
-    return newvbo;
-}
-
 void handleKeypress(int key, Instance* instance){
     switch(key){
         case KEY_W:

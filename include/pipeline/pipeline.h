@@ -11,3 +11,5 @@
 
 void draw(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, int pipelineVariation, Instance* instance);
 
+void drawMeshObject(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, Instance* instance);
+void drawLightSource(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, Instance* instance);

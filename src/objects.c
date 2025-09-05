@@ -1,6 +1,6 @@
 #include "objects.h"
 
-Vec3* load_png_as_vec3(const char* filename, int* out_width, int* out_height) {
+Vec3* loadPngFile(const char* filename, int* out_width, int* out_height) {
     int width, height, channels;
     unsigned char* data = stbi_load(filename, &width, &height, &channels, 3);
 
@@ -36,7 +36,7 @@ Vec3* load_png_as_vec3(const char* filename, int* out_width, int* out_height) {
 
 Texture createTexture(char* filename){
     Texture out;
-    out.pixels = load_png_as_vec3(filename, &out.width, &out.height);
+    out.pixels = loadPngFile(filename, &out.width, &out.height);
     if(!out.pixels){
         out.width = -1;
     }
@@ -57,7 +57,7 @@ Vec3 getTexturePixel(Texture* pTex, float tx, float ty){
     return pTex->pixels[iy * pTex->width + ix];
 }
 
-MeshData loadOBJ(const char *filename) {
+VertexBuffer loadObjFile(const char* filename){
     Vec3 *positions = NULL;
     Vec3 *normals = NULL;
     Vec2 *texcoords = NULL;
@@ -67,8 +67,8 @@ MeshData loadOBJ(const char *filename) {
     int *faceIndices = NULL;
     int faceIndexCount = 0;
 
-    MeshData mesh = {0};
-    mesh.indexCount = -1;
+    VertexBuffer mesh = {0};
+    mesh.indicesSize = -1;
 
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -130,17 +130,17 @@ MeshData loadOBJ(const char *filename) {
 
     // Build final vertex buffer
     int vertexSize = 3 + 3 + 2 + 3; // pos, color, tex, normal
-    mesh.vertexCount = (faceIndexCount / 3) * vertexSize;
-    mesh.vertices = malloc(sizeof(float) * mesh.vertexCount);
-    mesh.indexCount = faceIndexCount / 3;
-    mesh.indices = malloc(sizeof(int) * mesh.indexCount);
+    mesh.dataSize = (faceIndexCount / 3) * vertexSize;
+    mesh.data = malloc(sizeof(float) * mesh.dataSize);
+    mesh.indicesSize = faceIndexCount / 3;
+    mesh.indices = malloc(sizeof(int) * mesh.dataSize);
 
-    for (int i = 0; i < mesh.indexCount; i++) {
+    for (int i = 0; i < mesh.indicesSize; i++) {
         int pi = faceIndices[i * 3 + 0];
         int ti = faceIndices[i * 3 + 1];
         int ni = faceIndices[i * 3 + 2];
 
-        float *vert = &mesh.vertices[i * vertexSize];
+        float *vert = &mesh.data[i * vertexSize];
         vert[0] = positions[pi].x;
         vert[1] = positions[pi].y;
         vert[2] = positions[pi].z;
@@ -172,4 +172,15 @@ MeshData loadOBJ(const char *filename) {
     free(texcoords);
     free(faceIndices);
     return mesh;
+}
+
+VertexBuffer generateVertexBuffer(float* data, int* indices, int* layout, int datasize, int indicesSize, int layoutSize){
+    VertexBuffer newvbo;
+    newvbo.data = data;
+    newvbo.indices = indices;
+    newvbo.layout = layout;
+    newvbo.dataSize = datasize;
+    newvbo.indicesSize = indicesSize;
+    newvbo.layoutSize = layoutSize;
+    return newvbo;
 }

@@ -27,9 +27,6 @@ int SCREEN_HEIGHT = 600;
 UniformBuffer *UniformBufferRegister;
 Texture notexture;
 
-MeshData objectMesh;
-VertexBuffer objectVBO;
-
 Mat4 identityMat4 = {
     {1, 0, 0, 0},
     {0, 1, 0, 0},
@@ -60,15 +57,13 @@ int main(int argc, char *argv[]){
 
     int frameCount = 0; 
 
-    VertexBuffer vbo1 = generateVertexBuffer(vbo1data, vbo1indices, vbo1layout, vbo1size, vbo1indicesSize, vbo1layoutsize);
-    VertexBuffer lightvbo = generateVertexBuffer(lightdata, lightindices, lightlayout, lightsize, lightindicessize, lightlayoutsize);
+    instance.lightvbo = generateVertexBuffer(lightdata, lightindices, lightlayout, lightsize, lightindicessize, lightlayoutsize);
     
     UniformBuffer ubo1;
 
     handleApplicationArguments(argc, argv);
 
     Texture texture1 = createTexture("../assets/gold.png");
-
     
 
     while(instance.isRunning){
@@ -140,7 +135,7 @@ int main(int argc, char *argv[]){
         ubo1.lightPos = instance.lightPosition;
         ubo1.viewPos = instance.cameraPos;
         //draw(&vbo1, &ubo1, &texture1, PIPELINE_VARIATION_MESH);
-        draw(&instance.vbo, &ubo1, &instance.texture, PIPELINE_VARIATION_MESH, &instance);
+        draw(&instance.meshvbo, &ubo1, &instance.texture, PIPELINE_VARIATION_MESH, &instance);
 
 
         model = identityMat4;
@@ -149,7 +144,7 @@ int main(int argc, char *argv[]){
         ubo1.model = model;
         ubo1.view = view;
         ubo1.projection = projection;
-        draw(&lightvbo, &ubo1, &notexture, PIPELINE_VARIATION_LIGHT_SOURCE, &instance);
+        draw(&instance.lightvbo, &ubo1, &notexture, PIPELINE_VARIATION_LIGHT_SOURCE, &instance);
 
         presentScreen(&windowObject, &instance);
     }
@@ -197,7 +192,7 @@ void handleApplicationArguments(int argc, char* argv[]){
             loadDefaultMeshObject();
         }else{
             loadMeshObject(argv[1]);
-            if(instance.mesh.indexCount == -1){
+            if(instance.meshvbo.indicesSize == -1){
                 loadDefaultMeshObject();
             }
         }
@@ -216,9 +211,9 @@ void handleApplicationArguments(int argc, char* argv[]){
 }
 
 void loadDefaultMeshObject(){
-    instance.mesh = loadOBJ("../assets/suzanne_smooth.obj");
-    instance.vbo = generateVertexBuffer(instance.mesh.vertices, instance.mesh.indices, vbo1layout, instance.mesh.vertexCount, instance.mesh.indexCount, vbo1layoutsize);
-
+    instance.meshvbo = loadObjFile("../assets/suzanne_smooth.obj");
+    instance.meshvbo.layout = vbo1layout;
+    instance.meshvbo.layoutSize = vbo1layoutsize;
 }
 
 void loadDefaultTextureImage(){
@@ -226,13 +221,12 @@ void loadDefaultTextureImage(){
 }
 
 void loadMeshObject(char* argv){
-    instance.mesh = loadOBJ(argv);
-    if(instance.mesh.indexCount == -1){
+    instance.meshvbo = loadObjFile(argv);
+    instance.meshvbo.layout = vbo1layout;
+    instance.meshvbo.layoutSize = vbo1layoutsize;
+    if(instance.meshvbo.indicesSize == -1){
         loadDefaultMeshObject();
         printf("Using default mesh object instead\n");
-    }else{
-        
-        instance.vbo = generateVertexBuffer(instance.mesh.vertices, instance.mesh.indices, vbo1layout, instance.mesh.vertexCount, instance.mesh.indexCount, vbo1layoutsize);
     }
 }
 
