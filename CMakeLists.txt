@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(ColorsSRE C)
+project(ColorsSRE VERSION 1.0.1 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# Add executable with explicit sources
+# Target name stays "ColorsSRE"
 add_executable(${PROJECT_NAME}
     src/main.c
     src/math_utils.c
@@ -18,6 +18,11 @@ add_executable(${PROJECT_NAME}
     src/merger.c
     src/instance.c
     src/window.c
+)
+
+# Change only the *output file* name
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    OUTPUT_NAME "${PROJECT_NAME}-v${PROJECT_VERSION}"
 )
 
 # Include project headers
