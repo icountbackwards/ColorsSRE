@@ -1,9 +1,9 @@
-# ColorsSRE
+# ColorsSRE v1.0.0
+------------------
 
-This is the Minimum Viable Product version of ColorsSRE.
-ColorsSRE is a basic software rendering engine written in C using Win32 API.
+This is the 1.0.0 version of ColorsSRE. ColorsSRE is a basic software rendering engine written in C using **SDL3**.
 
-# How to Build
+## How to Build
 
 ```
 git clone https://github.com/icountbackwards/ColorsSRE.git
@@ -15,11 +15,21 @@ cmake ..
 cmake --build . --config Release
 ```
 
-Supported features in this version:
-- Rendering .obj mesh object files
-- Applying .png image files as textures
+# Supported features
+
+- Rendering single .obj mesh object file
+  
+- Applying .png image file as texture
+  
 - A controllable light source object with Blinn-Phong shading
+  
 - Controllable camera and mouse input
+
+## v1.0.0 Additions
+
+- Added support for rendering custom .obj meshes and .png files
+  
+- Uses SDL3 to render frame buffer
 
 Keyboard bindings:
 
@@ -40,6 +50,16 @@ M = Freeze mouse input (toggle on/off)
 
 ESC = Quit application
 
-Note : This version does not support rendering for custom mesh object and texture files.
- To render custom .obj mesh and .png image files, replace the .obj and .png files in /assets/ to your own .obj and .png files. And then rename the files to 'suzanne_smooth.obj' and 'gold.png'
+# Rendering with custom meshes and textures
 
+To render custom meshes and textures, run the application from the command line:
+
+`ColorsSRE.exe <path_to_obj_file> <path_to_png_file>`
+
+- The .obj file should be the second argument.
+
+- The .png file should be the third argument.
+
+- If the program fails to open the files, it will use the default assets instead.
+
+- Any additional arguments are ignored.
