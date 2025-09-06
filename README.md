@@ -25,11 +25,11 @@ cmake --build . --config Release
   
 - Controllable camera and mouse input
 
-## v1.0.1
+## v1.0.1 Update
 
 - Minor code restructuring
 
-Keyboard bindings:
+## Keyboard bindings
 
 WASD = Move camera
 
