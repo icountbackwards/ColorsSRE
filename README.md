@@ -1,7 +1,7 @@
-# ColorsSRE v1.0.0
+# ColorsSRE v1.0.1
 ------------------
 
-This is the 1.0.0 version of ColorsSRE. ColorsSRE is a basic software rendering engine written in C using **SDL3**.
+This is the 1.0.1 version of ColorsSRE. ColorsSRE is a basic software rendering engine written in C using **SDL3**.
 
 ## How to Build
 
@@ -25,11 +25,9 @@ cmake --build . --config Release
   
 - Controllable camera and mouse input
 
-## v1.0.0 Additions
+## v1.0.1
 
-- Added support for rendering custom .obj meshes and .png files
-  
-- Uses SDL3 to render frame buffer
+- Minor code restructuring
 
 Keyboard bindings:
 
@@ -63,3 +61,11 @@ To render custom meshes and textures, run the application from the command line:
 - If the program fails to open the files, it will use the default assets instead.
 
 - Any additional arguments are ignored.
+
+## Previous Versions Update Descriptions
+
+## v1.0.0
+
+- Added support for rendering custom .obj meshes and .png files
+  
+- Uses SDL3 to render frame buffer
