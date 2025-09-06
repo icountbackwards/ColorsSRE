@@ -64,7 +64,7 @@ To render custom meshes and textures, run the application from the command line:
 
 ## Previous Versions Update Descriptions
 
-## v1.0.0
+### v1.0.0
 
 - Added support for rendering custom .obj meshes and .png files
   
