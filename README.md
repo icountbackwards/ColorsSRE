@@ -6,7 +6,7 @@ This is the 1.0.1 version of Software Rendering Engine, written in C using **SDL
 ## How to Build
 
 ```
-git clone https://github.com/icountbackwards/ColorsSRE.git
+git clone https://github.com/icountbackwards/Software-Rendering-Engine.git
 cd ColorsSRE
 
 mkdir build
