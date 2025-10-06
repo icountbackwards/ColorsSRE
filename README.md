@@ -1,7 +1,7 @@
-# ColorsSRE v1.0.1
+# Software Rendering Engine v1.0.1
 ------------------
 
-This is the 1.0.1 version of ColorsSRE. ColorsSRE is a basic software rendering engine written in C using **SDL3**.
+This is the 1.0.1 version of Software Rendering Engine, written in C using **SDL3**.
 
 ## How to Build
 
