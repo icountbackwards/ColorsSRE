@@ -17,7 +17,7 @@ cmake --build . --config Release
 
 # Supported features
 
-- Rendering single .obj mesh object file with a .png image as texture
+- Rendering a .obj mesh object file with a .png image as texture
     
 - A controllable light source object with Blinn-Phong shading
   
