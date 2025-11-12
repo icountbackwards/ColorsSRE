@@ -70,23 +70,23 @@ void processEvent(WindowObject* windowObject, Instance* instance){
         case SDL_EVENT_KEY_DOWN:
             switch (event.key.key) {
                 case SDLK_W:
-                    //instance->cameraPos = plus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
+                    instance->cameraPos = plus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
                     break;
                 case SDLK_A:
-                    //instance->cameraPos = plus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
+                    instance->cameraPos = plus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
                     break;
                 case SDLK_S:
-                    //instance->cameraPos = minus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
+                    instance->cameraPos = minus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
                     break;
                 case SDLK_D:
-                    //instance->cameraPos = minus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
+                    instance->cameraPos = minus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
                     break;
                 case SDLK_M:
-                    //instance->mouseFreeze = !instance->mouseFreeze;
-                    //instance->mouseDeltaFreeze = true;
+                    instance->mouseFreeze = !instance->mouseFreeze;
+                    instance->mouseDeltaFreeze = true;
                     break;
                 case SDLK_B:
-                    //instance->backtofront = true;
+                    instance->backtofront = true;
                     break;
                 case SDLK_ESCAPE:
                     instance->isRunning = false;
