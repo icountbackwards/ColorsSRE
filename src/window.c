@@ -82,11 +82,11 @@ void processEvent(WindowObject* windowObject, Instance* instance){
                     //instance->cameraPos = minus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
                     break;
                 case SDLK_M:
-                    instance->mouseFreeze = !instance->mouseFreeze;
-                    instance->mouseDeltaFreeze = true;
+                    //instance->mouseFreeze = !instance->mouseFreeze;
+                    //instance->mouseDeltaFreeze = true;
                     break;
                 case SDLK_B:
-                    instance->backtofront = true;
+                    //instance->backtofront = true;
                     break;
                 case SDLK_ESCAPE:
                     instance->isRunning = false;
