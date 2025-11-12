@@ -26,23 +26,14 @@ cmake --build . --config Release
 ## v1.1.0 Update
 
 - Key binding update
-- 
+  
 ## Keyboard bindings
 
 WASD = Move camera
 
 IJKL + UH = Move light source (H moves light source backwards, U moves light source forward
 
-    Note: If V is pressed, I and K move the light source vertically.
-          Otherwise, I and K move the light source horizontally.
-          
 Arrow Keys (Left, Right, Up, Down) = Rotate object
-
-B = Reset camera to origin, facing forward
-
-V = Toggle I/K movement direction
-
-M = Freeze mouse input (toggle on/off)
 
 ESC = Quit application
 
