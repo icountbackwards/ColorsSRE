@@ -69,16 +69,16 @@ int main(int argc, char *argv[]){
     while(instance.isRunning){
         processEvent(&windowObject, &instance);
 
-        SDL_GetMouseState(&instance.mousepos.x, &instance.mousepos.y);
-        if(!instance.mouseFreeze && !instance.mouseDeltaFreeze){
-            handleMouse(instance.mousepos.x, instance.mousepos.y, &instance);
-        }
-        if(instance.mouseDeltaFreeze){
-            instance.mouseDeltaFreeze = false;
-            instance.mouseDeltaPos.x = 0;
-            instance.mouseDeltaPos.y = 0;
-            instance.mouseLastPos = instance.mousepos;
-        }
+        //SDL_GetMouseState(&instance.mousepos.x, &instance.mousepos.y);
+        //if(!instance.mouseFreeze && !instance.mouseDeltaFreeze){
+        //    handleMouse(instance.mousepos.x, instance.mousepos.y, &instance);
+        //}
+        //if(instance.mouseDeltaFreeze){
+        //    instance.mouseDeltaFreeze = false;
+        //    instance.mouseDeltaPos.x = 0;
+        //    instance.mouseDeltaPos.y = 0;
+        //    instance.mouseLastPos = instance.mousepos;
+        //}
 
         //
 
@@ -109,13 +109,13 @@ int main(int argc, char *argv[]){
         direction.x = sin((instance.yaw * TWO_PI) / 180) * cos((instance.pitch * TWO_PI) / 180);
         instance.cameraFront = normalize(direction);    
 
-        if(instance.backtofront){
-            instance.cameraFront = (Vec3){0.0, 0.0, -1.0};
-            instance.cameraPos = (Vec3){0.0, 0.0, 5.0};
-            instance.yaw = -90.0;
-            instance.pitch = 0.0;
-            instance.backtofront = false;
-        }
+        //if(instance.backtofront){
+        //    instance.cameraFront = (Vec3){0.0, 0.0, -1.0};
+        //    instance.cameraPos = (Vec3){0.0, 0.0, 5.0};
+        //    instance.yaw = -90.0;
+        //    instance.pitch = 0.0;
+        //    instance.backtofront = false;
+        //}
 
         clearFrameBuffer(&instance);
         clearDepthBuffer(&instance);
@@ -183,7 +183,7 @@ void handleApplicationArguments(int argc, char* argv[]){
 
     if (argc == 1) {
         //Format 1
-        printf("No parameters were provided, using default assets\n");
+        printf("No arguments were provided, using default assets\n");
         loadDefaultMeshObject();
         loadDefaultTextureImage();
     } else {

@@ -2,8 +2,6 @@
 
 
 void draw(VertexBuffer *vbo, UniformBuffer *ubo, Texture* pTextureResource, int pipelineVariation, Instance* instance){
-
-    
     
     VertexShaderOutput vertexShaderOutput = runVertexShader(vbo, ubo, pipelineVariation);
     

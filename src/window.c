@@ -70,20 +70,16 @@ void processEvent(WindowObject* windowObject, Instance* instance){
         case SDL_EVENT_KEY_DOWN:
             switch (event.key.key) {
                 case SDLK_W:
-                    instance->cameraPos = plus3(instance->cameraPos,
-                                               scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
+                    //instance->cameraPos = plus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
                     break;
                 case SDLK_A:
-                    instance->cameraPos = plus3(instance->cameraPos,
-                                               scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
+                    //instance->cameraPos = plus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
                     break;
                 case SDLK_S:
-                    instance->cameraPos = minus3(instance->cameraPos,
-                                                scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
+                    //instance->cameraPos = minus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, instance->cameraFront));
                     break;
                 case SDLK_D:
-                    instance->cameraPos = minus3(instance->cameraPos,
-                                                scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
+                    //instance->cameraPos = minus3(instance->cameraPos,scalarMultiply3(instance->cameraSpeed, cross(instance->cameraFront, instance->cameraUp)));
                     break;
                 case SDLK_M:
                     instance->mouseFreeze = !instance->mouseFreeze;
@@ -96,27 +92,25 @@ void processEvent(WindowObject* windowObject, Instance* instance){
                     instance->isRunning = false;
                     break;
                 case SDLK_V:
-                    instance->isVertical = !instance->isVertical;
+                    //instance->isVertical = !instance->isVertical;
                     break;
                 case SDLK_I:
-                    if (instance->isVertical) {
-                        instance->lightPosition.y += instance->cameraSpeed;
-                    } else {
-                        instance->lightPosition.z -= instance->cameraSpeed;
-                    }
+                    instance->lightPosition.y += instance->cameraSpeed;
                     break;
                 case SDLK_J:
                     instance->lightPosition.x += instance->cameraSpeed;
                     break;
                 case SDLK_K:
-                    if (instance->isVertical) {
-                        instance->lightPosition.y -= instance->cameraSpeed;
-                    } else {
-                        instance->lightPosition.z += instance->cameraSpeed;
-                    }
+                    instance->lightPosition.y -= instance->cameraSpeed;
                     break;
                 case SDLK_L:
                     instance->lightPosition.x -= instance->cameraSpeed;
+                    break;
+                case SDLK_U:
+                    instance->lightPosition.z -= instance->cameraSpeed;
+                    break;
+                case SDLK_H:
+                    instance->lightPosition.z += instance->cameraSpeed;
                     break;
                 case SDLK_UP:
                     instance->objrotate0 -= 0.1;

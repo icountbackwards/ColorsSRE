@@ -239,7 +239,7 @@ Mat4 lookAt(Vec3 cameraPos, Vec3 target, Vec3 up) {
         (Vec4){ 0.0, 1.0, 0.0, -cameraPos.y },
         (Vec4){ 0.0, 0.0, 1.0, -cameraPos.z },
         (Vec4){ 0.0, 0.0, 0.0, 1.0 }
-    };
+    };  
 
     return mat4mat4Multiply(rotation, translation);
 }
