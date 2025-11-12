@@ -1,7 +1,7 @@
-# Software Rendering Engine v1.0.1
+# ColorsSRE v1.1.0
 ------------------
 
-This is the 1.0.1 version of Software Rendering Engine, written in C using **SDL3**.
+This is the 1.1.0 version of Colors Software Rendering Engine, written in C using **SDL3**.
 
 ## How to Build
 
@@ -17,23 +17,21 @@ cmake --build . --config Release
 
 # Supported features
 
-- Rendering single .obj mesh object file
-  
-- Applying .png image file as texture
-  
+- Rendering single .obj mesh object file with a .png image as texture
+    
 - A controllable light source object with Blinn-Phong shading
   
-- Controllable camera and mouse input
+- Controllable camera and object positions
 
-## v1.0.1 Update
+## v1.1.0 Update
 
-- Minor code restructuring
-
+- Key binding update
+- 
 ## Keyboard bindings
 
 WASD = Move camera
 
-IJKL = Move light source
+IJKL + UH = Move light source (H moves light source backwards, U moves light source forward
 
     Note: If V is pressed, I and K move the light source vertically.
           Otherwise, I and K move the light source horizontally.
@@ -54,9 +52,11 @@ To render custom meshes and textures, run the application from the command line:
 
 `ColorsSRE.exe <path_to_obj_file> <path_to_png_file>`
 
-- The .obj file should be the second argument.
+- The .obj file must be in the second argument.
 
-- The .png file should be the third argument.
+- The .png file must be in the third argument.
+
+  Note: it is recommended to place the .obj and .png files in a the 'assets' folder and access it with `../assets/file_name.objorpng`
 
 - If the program fails to open the files, it will use the default assets instead.
 
@@ -68,4 +68,4 @@ To render custom meshes and textures, run the application from the command line:
 
 - Added support for rendering custom .obj meshes and .png files
   
-- Uses SDL3 to render frame buffer
+- Convert from Win32 to SDL3 for displaying and window management
