@@ -35,6 +35,10 @@ IJKL + UH = Move light source (H moves light source backwards, U moves light sou
 
 Arrow Keys (Left, Right, Up, Down) = Rotate object
 
+B = Reset camera to origin, facing forward
+
+M = Freeze mouse input (toggle on/off)
+
 ESC = Quit application
 
 # Rendering with custom meshes and textures
