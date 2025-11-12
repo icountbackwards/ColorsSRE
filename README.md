@@ -6,7 +6,7 @@ This is the 1.1.0 version of Colors Software Rendering Engine, written in C usin
 ## How to Build
 
 ```
-git clone https://github.com/icountbackwards/Software-Rendering-Engine.git](https://github.com/icountbackwards/ColorsSRE.git
+git clone https://github.com/icountbackwards/ColorsSRE.git
 cd ColorsSRE
 
 mkdir build
